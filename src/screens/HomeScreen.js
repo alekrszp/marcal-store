@@ -40,7 +40,7 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.header}>
           <Logo size="sm" />
-          <ProfileButton initial={userInitial} onPress={handleProfilePress} />
+          <ProfileButton initial={userInitial} avatar={user?.avatar} onPress={handleProfilePress} />
         </View>
 
         <HeroBanner />
