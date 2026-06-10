@@ -23,10 +23,10 @@ export default function ProfileScreen({ navigation }) {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes:    ImagePicker.MediaType.Images,
-      allowsEditing: true,
-      aspect:        [1, 1],
-      quality:       0.8,
+    mediaTypes:    ['images'],
+    allowsEditing: true,
+    aspect:        [1, 1],
+    quality:       0.8,
     });
 
     if (!result.canceled) {
