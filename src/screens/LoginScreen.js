@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Input from '../components/Input';
 import Button from '../components/Button';
-import { MSLogo } from '../components/Logo';
+import AuthCard from '../components/AuthCard';
 import g from '../theme/globalStyles';
-import { colors, spacing, radius } from '../theme';
+import { colors, spacing, typography } from '../theme';
 import userService from '../services/userService';
 
 export default function LoginScreen({ navigation }) {
@@ -29,8 +29,8 @@ export default function LoginScreen({ navigation }) {
     try {
       await userService.login(email, senha);
       navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
-    } catch {
-      setErrors({ geral: 'E-mail ou senha incorretos.' });
+    } catch (err) {
+      setErrors({ geral: err.message || 'E-mail ou senha incorretos.' });
     } finally {
       setIsLoading(false);
     }
@@ -41,47 +41,32 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView style={g.screen}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
           <TouchableOpacity style={g.backButton} onPress={handleGoBack}>
             <Text style={g.backText}>← VOLTAR</Text>
           </TouchableOpacity>
 
-          <View style={styles.card}>
-            <View style={styles.cardTop}>
-              <MSLogo size={44} />
-              <View style={styles.cardTitles}>
-                <Text style={styles.cardTitle}>ENTRAR</Text>
-                <Text style={styles.cardSub}>Acesse sua conta</Text>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
+          <AuthCard title="ENTRAR" subtitle="Acesse sua conta">
             <Input label="E-mail" value={email} onChangeText={setEmail}
               placeholder="seu@email.com" keyboardType="email-address" error={errors.email} />
             <Input label="Senha" value={senha} onChangeText={setSenha}
               placeholder="••••••••" secureTextEntry error={errors.senha} />
 
-            {errors.geral
-              ? <Text style={styles.errorGeral}>{errors.geral}</Text>
-              : null
-            }
+            {errors.geral ? <Text style={styles.errorGeral}>{errors.geral}</Text> : null}
 
             <TouchableOpacity style={styles.forgot}>
               <Text style={styles.forgotText}>ESQUECI MINHA SENHA</Text>
             </TouchableOpacity>
 
             <Button title="ENTRAR" onPress={handleLogin} loading={isLoading} />
-          </View>
+          </AuthCard>
 
-          <View style={g.footerRow}>
+          <TouchableOpacity style={g.footerRow} onPress={handleGoToCadastro}>
             <Text style={g.footerText}>Não tem conta?</Text>
-            <TouchableOpacity onPress={handleGoToCadastro}>
-              <Text style={g.footerLink}> Cadastre-se</Text>
-            </TouchableOpacity>
-          </View>
+            <Text style={g.footerLink}> Cadastre-se</Text>
+          </TouchableOpacity>
 
         </ScrollView>
       </KeyboardAvoidingView>
@@ -90,14 +75,9 @@ export default function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  flex:       { flex: 1 },
   scroll:     { flexGrow: 1, padding: spacing.lg, justifyContent: 'center' },
-  card:       { backgroundColor: colors.surface, borderRadius: radius.xl, padding: spacing.lg, borderWidth: 1, borderColor: colors.border },
-  cardTop:    { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg },
-  cardTitles: { flex: 1 },
-  cardTitle:  { fontSize: 22, fontWeight: '900', color: colors.textPrimary, letterSpacing: 2 },
-  cardSub:    { fontSize: 12, color: colors.textSecondary, marginTop: 3, fontWeight: '500' },
-  divider:    { height: 1, backgroundColor: colors.border, marginBottom: spacing.lg },
   forgot:     { alignSelf: 'flex-end', marginBottom: spacing.lg },
-  forgotText: { fontSize: 10, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5 },
-  errorGeral: { color: colors.danger, fontSize: 12, marginBottom: spacing.md, textAlign: 'center' },
+  forgotText: { ...typography.nano, color: colors.textSecondary, letterSpacing: 1.5 },
+  errorGeral: { ...typography.caption, color: colors.danger, marginBottom: spacing.md, textAlign: 'center' },
 });

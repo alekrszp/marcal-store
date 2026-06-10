@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Input from '../components/Input';
 import Button from '../components/Button';
-import { MSLogo } from '../components/Logo';
+import AuthCard from '../components/AuthCard';
 import g from '../theme/globalStyles';
-import { colors, spacing, radius } from '../theme';
+import { colors, spacing, radius, typography } from '../theme';
 import userService from '../services/userService';
 
 export default function CadastroScreen({ navigation }) {
@@ -35,8 +35,8 @@ export default function CadastroScreen({ navigation }) {
     try {
       await userService.register(form.nome, form.email, form.senha);
       navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
-    } catch {
-      setErrors({ geral: 'Erro ao criar conta. Tente novamente.' });
+    } catch (err) {
+      setErrors({ geral: err.message || 'Erro ao criar conta. Tente novamente.' });
     } finally {
       setIsLoading(false);
     }
@@ -47,24 +47,14 @@ export default function CadastroScreen({ navigation }) {
 
   return (
     <SafeAreaView style={g.screen}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
           <TouchableOpacity style={g.backButton} onPress={handleGoBack}>
             <Text style={g.backText}>← VOLTAR</Text>
           </TouchableOpacity>
 
-          <View style={styles.card}>
-            <View style={styles.cardTop}>
-              <MSLogo size={44} />
-              <View style={styles.cardTitles}>
-                <Text style={styles.cardTitle}>CADASTRO</Text>
-                <Text style={styles.cardSub}>Crie sua conta grátis</Text>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
+          <AuthCard title="CADASTRO" subtitle="Crie sua conta grátis">
             <Input label="Nome completo" value={form.nome} onChangeText={setField('nome')}
               placeholder="Seu nome" autoCapitalize="words" error={errors.nome} />
             <Input label="E-mail" value={form.email} onChangeText={setField('email')}
@@ -74,10 +64,7 @@ export default function CadastroScreen({ navigation }) {
             <Input label="Confirmar senha" value={form.confirmar} onChangeText={setField('confirmar')}
               placeholder="Repita a senha" secureTextEntry error={errors.confirmar} />
 
-            {errors.geral
-              ? <Text style={styles.errorGeral}>{errors.geral}</Text>
-              : null
-            }
+            {errors.geral ? <Text style={styles.errorGeral}>{errors.geral}</Text> : null}
 
             <TouchableOpacity style={styles.terms} onPress={() => setHasAceito(a => !a)} activeOpacity={0.7}>
               <View style={[styles.checkbox, hasAceito && styles.checkboxOn]}>
@@ -88,14 +75,12 @@ export default function CadastroScreen({ navigation }) {
             {errors.aceito ? <Text style={styles.errorText}>{errors.aceito}</Text> : null}
 
             <Button title="CRIAR CONTA" onPress={handleCadastro} loading={isLoading} style={{ marginTop: spacing.md }} />
-          </View>
+          </AuthCard>
 
-          <View style={g.footerRow}>
+          <TouchableOpacity style={g.footerRow} onPress={handleGoToLogin}>
             <Text style={g.footerText}>Já tem conta?</Text>
-            <TouchableOpacity onPress={handleGoToLogin}>
-              <Text style={g.footerLink}> Entrar</Text>
-            </TouchableOpacity>
-          </View>
+            <Text style={g.footerLink}> Entrar</Text>
+          </TouchableOpacity>
 
         </ScrollView>
       </KeyboardAvoidingView>
@@ -104,18 +89,13 @@ export default function CadastroScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  flex:       { flex: 1 },
   scroll:     { flexGrow: 1, padding: spacing.lg, justifyContent: 'center' },
-  card:       { backgroundColor: colors.surface, borderRadius: radius.xl, padding: spacing.lg, borderWidth: 1, borderColor: colors.border },
-  cardTop:    { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg },
-  cardTitles: { flex: 1 },
-  cardTitle:  { fontSize: 22, fontWeight: '900', color: colors.textPrimary, letterSpacing: 2 },
-  cardSub:    { fontSize: 12, color: colors.textSecondary, marginTop: 3, fontWeight: '500' },
-  divider:    { height: 1, backgroundColor: colors.border, marginBottom: spacing.lg },
   terms:      { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, gap: spacing.sm },
-  checkbox:   { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: colors.borderLight, alignItems: 'center', justifyContent: 'center' },
+  checkbox:   { width: 20, height: 20, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.borderLight, alignItems: 'center', justifyContent: 'center' },
   checkboxOn: { backgroundColor: colors.primary, borderColor: colors.primary },
-  checkmark:  { color: colors.primaryText, fontSize: 12, fontWeight: '900' },
-  termsText:  { flex: 1, fontSize: 12, color: colors.textSecondary, lineHeight: 18 },
-  errorText:  { color: colors.danger, fontSize: 12, marginTop: spacing.xs },
-  errorGeral: { color: colors.danger, fontSize: 12, marginBottom: spacing.md, textAlign: 'center' },
+  checkmark:  { ...typography.caption, fontWeight: '900', color: colors.primaryText },
+  termsText:  { ...typography.caption, color: colors.textSecondary, lineHeight: 18, flex: 1 },
+  errorText:  { ...typography.caption, color: colors.danger, marginTop: spacing.xs },
+  errorGeral: { ...typography.caption, color: colors.danger, marginBottom: spacing.md, textAlign: 'center' },
 });

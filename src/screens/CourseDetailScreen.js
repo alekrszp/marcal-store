@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ModuloItem from '../components/ModuloItem';
 import g from '../theme/globalStyles';
 import { colors, spacing, radius, typography } from '../theme';
 import { formatCurrency } from '../utils/formatters';
@@ -17,11 +18,7 @@ export default function CourseDetailScreen({ navigation, route }) {
       <ScrollView showsVerticalScrollIndicator={false}>
 
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: course.image }}
-            style={styles.image}
-            resizeMode="cover"
-          />
+          <Image source={{ uri: course.image }} style={styles.image} resizeMode="cover" />
           <View style={styles.imageOverlay} />
           <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
             <Text style={styles.backText}>← VOLTAR</Text>
@@ -59,10 +56,7 @@ export default function CourseDetailScreen({ navigation, route }) {
               <Text style={styles.sectionTitle}>O QUE VOCÊ VAI APRENDER</Text>
               <View style={styles.modulosList}>
                 {course.modulos.map((modulo, index) => (
-                  <View key={index} style={styles.moduloRow}>
-                    <View style={styles.moduloBullet} />
-                    <Text style={styles.moduloText}>{modulo}</Text>
-                  </View>
+                  <ModuloItem key={index} title={modulo} />
                 ))}
               </View>
               <View style={styles.divider} />
@@ -88,7 +82,7 @@ export default function CourseDetailScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   imageContainer: { height: 280, position: 'relative' },
   image:          { width: '100%', height: '100%' },
-  imageOverlay:   { position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)' },
+  imageOverlay:   { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)' },
   backButton:     { position: 'absolute', top: spacing.lg, left: spacing.lg },
   backText:       { ...typography.caption, fontWeight: '700', color: colors.primaryText, letterSpacing: 1.5 },
   tag:            { position: 'absolute', top: spacing.lg, right: spacing.lg, backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full },
@@ -103,9 +97,6 @@ const styles = StyleSheet.create({
   sectionTitle:   { ...typography.micro, color: colors.textSecondary, marginBottom: spacing.md },
   descricao:      { ...typography.body, color: colors.textPrimary },
   modulosList:    { gap: spacing.sm },
-  moduloRow:      { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  moduloBullet:   { width: spacing.sm, height: spacing.sm, borderRadius: radius.full, backgroundColor: colors.primary },
-  moduloText:     { ...typography.subtitle, color: colors.textPrimary, flex: 1 },
   buySection:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
   priceLabel:     { ...typography.micro, color: colors.textSecondary, marginBottom: spacing.xs },
   price:          { ...typography.h4, color: colors.primary },

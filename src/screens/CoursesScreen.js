@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CourseCard from '../components/CourseCard';
-import CategoryChip from '../components/CategoryChip';
+import CategoryFilterBar from '../components/CategoryFilterBar';
 import g from '../theme/globalStyles';
 import { colors, spacing, typography } from '../theme';
 import useCourses from '../hooks/useCourses';
 import useCategories from '../hooks/useCategories';
 
 export default function CoursesScreen({ navigation, route }) {
-  const initialCategory             = route.params?.category ?? 'Todos';
+  const initialCategory                     = route.params?.category ?? 'Todos';
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const { courses }                         = useCourses(activeCategory);
   const { categories }                      = useCategories();
@@ -31,21 +31,11 @@ export default function CoursesScreen({ navigation, route }) {
         <Text style={styles.title}>CURSOS</Text>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoriesRow}
-        style={styles.categoriesScroll}
-      >
-        {categories.map((cat) => (
-          <CategoryChip
-            key={cat}
-            label={cat}
-            isActive={activeCategory === cat}
-            onPress={() => setActiveCategory(cat)}
-          />
-        ))}
-      </ScrollView>
+      <CategoryFilterBar
+        categories={categories}
+        activeCategory={activeCategory}
+        onSelect={setActiveCategory}
+      />
 
       <FlatList
         data={courses}
@@ -54,11 +44,9 @@ export default function CoursesScreen({ navigation, route }) {
         contentContainerStyle={styles.grid}
         columnWrapperStyle={styles.row}
         renderItem={({ item }) => (
-          <CourseCard
-            course={item}
-            onPress={() => handleCoursePress(item)}
-            style={styles.card}
-          />
+          <View style={styles.cardWrap}>
+            <CourseCard course={item} onPress={() => handleCoursePress(item)} />
+          </View>
         )}
         ListEmptyComponent={
           <Text style={styles.emptyText}>Nenhum curso encontrado.</Text>
@@ -69,12 +57,10 @@ export default function CoursesScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  header:           { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
-  title:            { ...typography.h2, color: colors.textPrimary, marginBottom: spacing.md },
-  categoriesScroll: { flexGrow: 0 },
-  categoriesRow:    { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, alignItems: 'center' },
-  grid:             { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, paddingTop: spacing.sm },
-  row:              { justifyContent: 'space-between', marginBottom: spacing.md },
-  card:             { width: '48%' },
-  emptyText:        { ...typography.small, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl },
+  header:   { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  title:    { ...typography.h2, color: colors.textPrimary, marginBottom: spacing.md },
+  grid:     { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  row:      { justifyContent: 'space-between', marginBottom: spacing.md },
+  cardWrap: { width: '48%' },
+  emptyText:{ ...typography.small, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl },
 });

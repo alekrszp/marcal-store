@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Text, FlatList } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Logo from '../components/Logo';
 import HeroBanner from '../components/HeroBanner';
-import CourseCard from '../components/CourseCard';
-import CategoryChip from '../components/CategoryChip';
+import CategoryFilterBar from '../components/CategoryFilterBar';
+import SectionHeader from '../components/SectionHeader';
+import CourseRow from '../components/CourseRow';
+import ProfileButton from '../components/ProfileButton';
 import g from '../theme/globalStyles';
 import { colors, spacing } from '../theme';
 import { useUserContext } from '../context/UserContext';
@@ -38,68 +40,28 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.header}>
           <Logo size="sm" />
-          <TouchableOpacity style={styles.profileBtn} onPress={handleProfilePress}>
-            <Text style={styles.profileInitial}>{userInitial}</Text>
-          </TouchableOpacity>
+          <ProfileButton initial={userInitial} onPress={handleProfilePress} />
         </View>
 
         <HeroBanner />
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesRow}
-        >
-          {categories.map((cat) => (
-            <CategoryChip
-              key={cat}
-              label={cat}
-              isActive={activeCategory === cat}
-              onPress={() => setActiveCategory(cat)}
-            />
-          ))}
-        </ScrollView>
-
-        <View style={g.sectionHeader}>
-          <Text style={g.sectionTitle}>
-            {activeCategory === 'Todos' ? 'Em destaque' : activeCategory}
-          </Text>
-          <TouchableOpacity onPress={() => handleVerTudo(activeCategory)}>
-            <Text style={g.sectionLink}>Ver tudo</Text>
-          </TouchableOpacity>
-        </View>
-
-        <FlatList
-          data={courses}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.coursesList}
-          renderItem={({ item }) => (
-            <CourseCard course={item} onPress={() => handleCoursePress(item)} />
-          )}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>Nenhum curso nesta categoria.</Text>
-          }
+        <CategoryFilterBar
+          categories={categories}
+          activeCategory={activeCategory}
+          onSelect={setActiveCategory}
         />
 
-        <View style={g.sectionHeader}>
-          <Text style={g.sectionTitle}>Mentorias</Text>
-          <TouchableOpacity onPress={() => handleVerTudo('Mentoria')}>
-            <Text style={g.sectionLink}>Ver tudo</Text>
-          </TouchableOpacity>
-        </View>
-
-        <FlatList
-          data={mentorias}
-          keyExtractor={(item) => `mentoria_${item.id}`}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.coursesList}
-          renderItem={({ item }) => (
-            <CourseCard course={item} onPress={() => handleCoursePress(item)} />
-          )}
+        <SectionHeader
+          title={activeCategory === 'Todos' ? 'Em destaque' : activeCategory}
+          onVerTudo={() => handleVerTudo(activeCategory)}
         />
+        <CourseRow courses={courses} onCoursePress={handleCoursePress} />
+
+        <SectionHeader
+          title="Mentorias"
+          onVerTudo={() => handleVerTudo('Mentoria')}
+        />
+        <CourseRow courses={mentorias} onCoursePress={handleCoursePress} />
 
         <View style={{ height: spacing.xxl }} />
       </ScrollView>
@@ -108,11 +70,6 @@ export default function HomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  safe:           { flex: 1, backgroundColor: colors.background },
-  header:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
-  profileBtn:     { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  profileInitial: { fontSize: 16, fontWeight: '900', color: colors.primaryText },
-  categoriesRow:  { paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
-  coursesList:    { paddingHorizontal: spacing.lg },
-  emptyText:      { color: colors.textSecondary, fontSize: 13, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  safe:   { flex: 1, backgroundColor: colors.background },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
 });
