@@ -11,11 +11,15 @@ async function getCourses(category = null) {
   // INTEGRAÇÃO: GET /api/courses?category=<category>
   // Header: Authorization: Bearer <token>
   // Resposta: Array<{ id, title, mentor, price, tag?, category, image }>
-  const token    = await storage.load(storage.KEYS.TOKEN);
+  const token = await storage.load(storage.KEYS.TOKEN);
+  if (!token) throw new Error('Usuário não autenticado');
+
   const query    = category && category !== 'Todos' ? `?category=${category}` : '';
   const response = await fetch(`${API_URL}/api/courses${query}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
   return await response.json();
 }
 
@@ -25,10 +29,14 @@ async function getCategories() {
   // INTEGRAÇÃO: GET /api/categories
   // Header: Authorization: Bearer <token>
   // Resposta: Array<string>
-  const token    = await storage.load(storage.KEYS.TOKEN);
+  const token = await storage.load(storage.KEYS.TOKEN);
+  if (!token) throw new Error('Usuário não autenticado');
+
   const response = await fetch(`${API_URL}/api/categories`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
   return await response.json();
 }
 

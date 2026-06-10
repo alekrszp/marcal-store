@@ -28,7 +28,7 @@ export default function LoginScreen({ navigation }) {
     setIsLoading(true);
     try {
       await userService.login(email, senha);
-      navigation.navigate('Home');
+      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
     } catch {
       setErrors({ geral: 'E-mail ou senha incorretos.' });
     } finally {

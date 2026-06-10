@@ -14,8 +14,8 @@ export default function useCategories() {
     try {
       const data = await courseService.getCategories();
       setCategories(data);
-    } catch {
-      setHasError(true);
+    } catch (err) {
+      setHasError(err.message || true);
     } finally {
       setIsLoading(false);
     }

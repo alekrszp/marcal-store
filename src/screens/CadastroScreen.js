@@ -34,7 +34,7 @@ export default function CadastroScreen({ navigation }) {
     setIsLoading(true);
     try {
       await userService.register(form.nome, form.email, form.senha);
-      navigation.navigate('Home');
+      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
     } catch {
       setErrors({ geral: 'Erro ao criar conta. Tente novamente.' });
     } finally {

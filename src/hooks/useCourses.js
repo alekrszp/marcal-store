@@ -15,8 +15,8 @@ export default function useCourses(category = 'Todos') {
       setIsLoading(true);
       const data = await courseService.getCourses(category);
       setCourses(data);
-    } catch {
-      setHasError(true);
+    } catch (err) {
+      setHasError(err.message || true);
     } finally {
       setIsLoading(false);
     }

@@ -24,7 +24,9 @@ export default function CourseCard({ course, onPress }) {
         <Text style={styles.title} numberOfLines={1}>{course.title}</Text>
         <Text style={styles.mentor} numberOfLines={1}>{course.mentor}</Text>
         <View style={styles.footer}>
-          <Text style={styles.price}>R$ {course.price}</Text>
+          <Text style={styles.price}>
+            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(course.price)}
+            </Text>
           <TouchableOpacity style={styles.btn} onPress={onPress}>
             <Text style={styles.btnText}>VER</Text>
           </TouchableOpacity>

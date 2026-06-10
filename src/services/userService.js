@@ -12,10 +12,14 @@ async function getUser() {
 
   // INTEGRAÇÃO: GET /api/auth/me — Header: Authorization: Bearer <token>
   // Resposta: { id, nome, email, avatar? }
-  const token    = await storage.load(storage.KEYS.TOKEN);
+  const token = await storage.load(storage.KEYS.TOKEN);
+  if (!token) throw new Error('Usuário não autenticado');
+
   const response = await fetch(`${API_URL}/api/auth/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
   const user = await response.json();
   await storage.save(storage.KEYS.USER, user);
   return user;
@@ -30,14 +34,17 @@ async function updateAvatar(uri) {
   // INTEGRAÇÃO: PATCH /api/auth/me/avatar
   // Body: FormData com campo "avatar" (multipart/form-data)
   // Header: Authorization: Bearer <token>
-  const token    = await storage.load(storage.KEYS.TOKEN);
+  const token = await storage.load(storage.KEYS.TOKEN);
+  if (!token) throw new Error('Usuário não autenticado');
+
   const formData = new FormData();
   formData.append('avatar', { uri, type: 'image/jpeg', name: 'avatar.jpg' });
-  await fetch(`${API_URL}/api/auth/me/avatar`, {
+  const response = await fetch(`${API_URL}/api/auth/me/avatar`, {
     method:  'PATCH',
     headers: { Authorization: `Bearer ${token}` },
     body:    formData,
   });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
 }
 
 async function login(email, senha) {
@@ -56,6 +63,8 @@ async function login(email, senha) {
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ email, senha }),
   });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
   const data = await response.json();
   await storage.save(storage.KEYS.TOKEN, data.token);
   await storage.save(storage.KEYS.USER,  data.user);
@@ -78,6 +87,8 @@ async function register(nome, email, senha) {
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ nome, email, senha }),
   });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
   const data = await response.json();
   await storage.save(storage.KEYS.TOKEN, data.token);
   await storage.save(storage.KEYS.USER,  data.user);
