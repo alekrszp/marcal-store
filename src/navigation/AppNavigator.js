@@ -1,7 +1,9 @@
 import React from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useUserContext } from '../context/UserContext';
+import { colors } from '../theme';
 import WelcomeScreen      from '../screens/WelcomeScreen';
 import LoginScreen        from '../screens/LoginScreen';
 import CadastroScreen     from '../screens/CadastroScreen';
@@ -33,10 +35,18 @@ function AppStack() {
   );
 }
 
+function LoadingScreen() {
+  return (
+    <View style={styles.loading}>
+      <ActivityIndicator size="large" color={colors.primary} />
+    </View>
+  );
+}
+
 export default function AppNavigator() {
   const { user, isLoading } = useUserContext();
 
-  if (isLoading) return null;
+  if (isLoading) return <LoadingScreen />;
 
   return (
     <NavigationContainer>
@@ -44,3 +54,7 @@ export default function AppNavigator() {
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  loading: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' },
+});

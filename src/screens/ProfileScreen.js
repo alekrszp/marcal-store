@@ -39,8 +39,8 @@ export default function ProfileScreen({ navigation }) {
       'Sair',
       'Tem certeza que deseja sair?',
       [
-        { text: 'Cancelar',  style: 'cancel' },
-        { text: 'Sair', style: 'destructive', onPress: logout },
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Sair', style: 'destructive', onPress: () => logout() },
       ]
     );
   }
@@ -83,4 +83,4 @@ const styles = StyleSheet.create({
   divider:       { height: 1, backgroundColor: colors.border },
   logoutBtn:     { height: 56, borderRadius: radius.md, borderWidth: 1, borderColor: colors.danger, alignItems: 'center', justifyContent: 'center' },
   logoutText:    { ...typography.small, fontWeight: '900', color: colors.danger, letterSpacing: 2 },
-});
+}); 
