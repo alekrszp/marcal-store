@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScrollView } from 'react-native';
 import Logo from '../components/Logo';
 import HeroBanner from '../components/HeroBanner';
 import CategoryFilterBar from '../components/CategoryFilterBar';
 import SectionHeader from '../components/SectionHeader';
 import CourseRow from '../components/CourseRow';
 import ProfileButton from '../components/ProfileButton';
-import g from '../theme/globalStyles';
 import { colors, spacing } from '../theme';
 import { useUserContext } from '../context/UserContext';
 import useCourses from '../hooks/useCourses';
@@ -63,13 +63,15 @@ export default function HomeScreen({ navigation }) {
         />
         <CourseRow courses={mentorias} onCoursePress={handleCoursePress} />
 
-        <View style={{ height: spacing.xxl }} />
+        <View style={styles.bottomSpacer} />
+
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: colors.background },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  safe:         { flex: 1, backgroundColor: colors.background },
+  header:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  bottomSpacer: { height: spacing.xxl },
 });

@@ -5,7 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import AvatarPicker from '../components/AvatarPicker';
 import InfoRow from '../components/InfoRow';
 import g from '../theme/globalStyles';
-import { colors, spacing, radius } from '../theme';
+import { colors, spacing, radius, typography } from '../theme';
 import { useUserContext } from '../context/UserContext';
 
 export default function ProfileScreen({ navigation }) {
@@ -23,10 +23,10 @@ export default function ProfileScreen({ navigation }) {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
+      mediaTypes:    ImagePicker.MediaType.Images,
       allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
+      aspect:        [1, 1],
+      quality:       0.8,
     });
 
     if (!result.canceled) {
@@ -39,15 +39,10 @@ export default function ProfileScreen({ navigation }) {
       'Sair',
       'Tem certeza que deseja sair?',
       [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Sair', style: 'destructive', onPress: handleConfirmLogout },
+        { text: 'Cancelar',  style: 'cancel' },
+        { text: 'Sair', style: 'destructive', onPress: logout },
       ]
     );
-  }
-
-  async function handleConfirmLogout() {
-    await logout();
-    navigation.reset({ index: 0, routes: [{ name: 'Welcome' }] });
   }
 
   function handleGoBack() {
@@ -87,5 +82,5 @@ const styles = StyleSheet.create({
   card:          { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: spacing.xl },
   divider:       { height: 1, backgroundColor: colors.border },
   logoutBtn:     { height: 56, borderRadius: radius.md, borderWidth: 1, borderColor: colors.danger, alignItems: 'center', justifyContent: 'center' },
-  logoutText:    { fontSize: 13, fontWeight: '900', color: colors.danger, letterSpacing: 2 },
+  logoutText:    { ...typography.small, fontWeight: '900', color: colors.danger, letterSpacing: 2 },
 });
