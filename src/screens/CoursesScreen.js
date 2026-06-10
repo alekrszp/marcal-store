@@ -45,7 +45,11 @@ export default function CoursesScreen({ navigation, route }) {
         columnWrapperStyle={styles.row}
         renderItem={({ item }) => (
           <View style={styles.cardWrap}>
-            <CourseCard course={item} onPress={() => handleCoursePress(item)} />
+            <CourseCard
+              course={item}
+              onPress={() => handleCoursePress(item)}
+              style={styles.cardGrid}
+            />
           </View>
         )}
         ListEmptyComponent={
@@ -62,5 +66,6 @@ const styles = StyleSheet.create({
   grid:     { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
   row:      { justifyContent: 'space-between', marginBottom: spacing.md },
   cardWrap: { width: '48%' },
+  cardGrid: { width: '100%' },
   emptyText:{ ...typography.small, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl },
 });

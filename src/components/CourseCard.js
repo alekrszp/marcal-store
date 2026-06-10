@@ -35,7 +35,7 @@ export default function CourseCard({ course, onPress, style }) {
 }
 
 const styles = StyleSheet.create({
-  card:           { width: 200, backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginRight: spacing.md },
+  card:           { backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
   thumbContainer: { height: 120, position: 'relative' },
   image:          { width: '100%', height: '100%' },
   overlay:        { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.3)' },

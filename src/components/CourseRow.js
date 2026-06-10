@@ -12,7 +12,11 @@ export default function CourseRow({ courses, onCoursePress }) {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.list}
       renderItem={({ item }) => (
-        <CourseCard course={item} onPress={() => onCoursePress(item)} />
+        <CourseCard
+          course={item}
+          onPress={() => onCoursePress(item)}
+          style={styles.card}
+        />
       )}
       ListEmptyComponent={
         <Text style={styles.empty}>Nenhum curso nesta categoria.</Text>
@@ -23,5 +27,6 @@ export default function CourseRow({ courses, onCoursePress }) {
 
 const styles = StyleSheet.create({
   list:  { paddingHorizontal: spacing.lg },
+  card:  { width: 200, marginRight: spacing.md },
   empty: { ...typography.small, color: colors.textSecondary, paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
 });
