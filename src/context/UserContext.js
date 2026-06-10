@@ -25,6 +25,16 @@ export function UserProvider({ children }) {
     }
   }
 
+  async function login(email, senha) {
+    const data = await userService.login(email, senha);
+    setUser(data);
+  }
+
+  async function register(nome, email, senha) {
+    const data = await userService.register(nome, email, senha);
+    setUser(data);
+  }
+
   async function updateAvatar(uri) {
     await userService.updateAvatar(uri);
     setUser(prev => ({ ...prev, avatar: uri }));
@@ -36,7 +46,7 @@ export function UserProvider({ children }) {
   }
 
   return (
-    <UserContext.Provider value={{ user, isLoading, updateAvatar, logout }}>
+    <UserContext.Provider value={{ user, isLoading, login, register, updateAvatar, logout }}>
       {children}
     </UserContext.Provider>
   );

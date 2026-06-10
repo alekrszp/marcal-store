@@ -6,13 +6,14 @@ import Button from '../components/Button';
 import AuthCard from '../components/AuthCard';
 import g from '../theme/globalStyles';
 import { colors, spacing, typography } from '../theme';
-import userService from '../services/userService';
+import { useUserContext } from '../context/UserContext';
 
 export default function LoginScreen({ navigation }) {
-  const [email,     setEmail]     = useState('');
-  const [senha,     setSenha]     = useState('');
-  const [errors,    setErrors]    = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const { login }                   = useUserContext();
+  const [email,     setEmail]       = useState('');
+  const [senha,     setSenha]       = useState('');
+  const [errors,    setErrors]      = useState({});
+  const [isLoading, setIsLoading]   = useState(false);
 
   function validateForm() {
     const newErrors = {};
@@ -27,8 +28,7 @@ export default function LoginScreen({ navigation }) {
     if (!validateForm()) return;
     setIsLoading(true);
     try {
-      await userService.login(email, senha);
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      await login(email, senha);
     } catch (err) {
       setErrors({ geral: err.message || 'E-mail ou senha incorretos.' });
     } finally {
@@ -49,10 +49,22 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
 
           <AuthCard title="ENTRAR" subtitle="Acesse sua conta">
-            <Input label="E-mail" value={email} onChangeText={setEmail}
-              placeholder="seu@email.com" keyboardType="email-address" error={errors.email} />
-            <Input label="Senha" value={senha} onChangeText={setSenha}
-              placeholder="••••••••" secureTextEntry error={errors.senha} />
+            <Input
+              label="E-mail"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="seu@email.com"
+              keyboardType="email-address"
+              error={errors.email}
+            />
+            <Input
+              label="Senha"
+              value={senha}
+              onChangeText={setSenha}
+              placeholder="••••••••"
+              secureTextEntry
+              error={errors.senha}
+            />
 
             {errors.geral ? <Text style={styles.errorGeral}>{errors.geral}</Text> : null}
 

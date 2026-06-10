@@ -6,13 +6,14 @@ import Button from '../components/Button';
 import AuthCard from '../components/AuthCard';
 import g from '../theme/globalStyles';
 import { colors, spacing, radius, typography } from '../theme';
-import userService from '../services/userService';
+import { useUserContext } from '../context/UserContext';
 
 export default function CadastroScreen({ navigation }) {
-  const [form,      setForm]      = useState({ nome: '', email: '', senha: '', confirmar: '' });
-  const [hasAceito, setHasAceito] = useState(false);
-  const [errors,    setErrors]    = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const { register }                = useUserContext();
+  const [form,      setForm]        = useState({ nome: '', email: '', senha: '', confirmar: '' });
+  const [hasAceito, setHasAceito]   = useState(false);
+  const [errors,    setErrors]      = useState({});
+  const [isLoading, setIsLoading]   = useState(false);
 
   const setField = (field) => (value) => setForm(prev => ({ ...prev, [field]: value }));
 
@@ -33,8 +34,7 @@ export default function CadastroScreen({ navigation }) {
     if (!validateForm()) return;
     setIsLoading(true);
     try {
-      await userService.register(form.nome, form.email, form.senha);
-      navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+      await register(form.nome, form.email, form.senha);
     } catch (err) {
       setErrors({ geral: err.message || 'Erro ao criar conta. Tente novamente.' });
     } finally {
@@ -55,14 +55,38 @@ export default function CadastroScreen({ navigation }) {
           </TouchableOpacity>
 
           <AuthCard title="CADASTRO" subtitle="Crie sua conta grátis">
-            <Input label="Nome completo" value={form.nome} onChangeText={setField('nome')}
-              placeholder="Seu nome" autoCapitalize="words" error={errors.nome} />
-            <Input label="E-mail" value={form.email} onChangeText={setField('email')}
-              placeholder="seu@email.com" keyboardType="email-address" error={errors.email} />
-            <Input label="Senha" value={form.senha} onChangeText={setField('senha')}
-              placeholder="Mínimo 6 caracteres" secureTextEntry error={errors.senha} />
-            <Input label="Confirmar senha" value={form.confirmar} onChangeText={setField('confirmar')}
-              placeholder="Repita a senha" secureTextEntry error={errors.confirmar} />
+            <Input
+              label="Nome completo"
+              value={form.nome}
+              onChangeText={setField('nome')}
+              placeholder="Seu nome"
+              autoCapitalize="words"
+              error={errors.nome}
+            />
+            <Input
+              label="E-mail"
+              value={form.email}
+              onChangeText={setField('email')}
+              placeholder="seu@email.com"
+              keyboardType="email-address"
+              error={errors.email}
+            />
+            <Input
+              label="Senha"
+              value={form.senha}
+              onChangeText={setField('senha')}
+              placeholder="Mínimo 6 caracteres"
+              secureTextEntry
+              error={errors.senha}
+            />
+            <Input
+              label="Confirmar senha"
+              value={form.confirmar}
+              onChangeText={setField('confirmar')}
+              placeholder="Repita a senha"
+              secureTextEntry
+              error={errors.confirmar}
+            />
 
             {errors.geral ? <Text style={styles.errorGeral}>{errors.geral}</Text> : null}
 
@@ -74,7 +98,12 @@ export default function CadastroScreen({ navigation }) {
             </TouchableOpacity>
             {errors.aceito ? <Text style={styles.errorText}>{errors.aceito}</Text> : null}
 
-            <Button title="CRIAR CONTA" onPress={handleCadastro} loading={isLoading} style={{ marginTop: spacing.md }} />
+            <Button
+              title="CRIAR CONTA"
+              onPress={handleCadastro}
+              loading={isLoading}
+              style={{ marginTop: spacing.md }}
+            />
           </AuthCard>
 
           <TouchableOpacity style={g.footerRow} onPress={handleGoToLogin}>
