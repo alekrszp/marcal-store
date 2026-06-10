@@ -4,10 +4,10 @@ import Svg, { Circle, Text as SvgText } from 'react-native-svg';
 import { colors, typography } from '../theme';
 
 function MSLogo({ size = 56 }) {
-  const cx      = size / 2;
-  const cy      = size / 2;
-  const outerR  = size / 2 - 2;
-  const innerR  = size / 2 - 7;
+  const cx       = size / 2;
+  const cy       = size / 2;
+  const outerR   = size / 2 - 2;
+  const innerR   = size / 2 - 7;
   const fontSize = size * 0.48;
 
   return (

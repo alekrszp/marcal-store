@@ -8,42 +8,52 @@ import g from '../theme/globalStyles';
 import { colors, spacing, radius } from '../theme';
 
 export default function CadastroScreen({ navigation }) {
-  const [form,    setForm]    = useState({ nome: '', email: '', senha: '', confirmar: '' });
-  const [aceito,  setAceito]  = useState(false);
-  const [errors,  setErrors]  = useState({});
-  const [loading, setLoading] = useState(false);
+  const [form,      setForm]      = useState({ nome: '', email: '', senha: '', confirmar: '' });
+  const [hasAceito, setHasAceito] = useState(false);
+  const [errors,    setErrors]    = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const setField = (field) => (value) => setForm(prev => ({ ...prev, [field]: value }));
 
-  function validate() {
-    const e = {};
-    if (!form.nome.trim())                      e.nome      = 'Informe seu nome';
-    if (!form.email.trim())                     e.email     = 'Informe seu e-mail';
-    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email     = 'E-mail inválido';
-    if (!form.senha)                            e.senha     = 'Crie uma senha';
-    else if (form.senha.length < 6)             e.senha     = 'Mínimo 6 caracteres';
-    if (form.confirmar !== form.senha)          e.confirmar = 'Senhas não coincidem';
-    if (!aceito)                                e.aceito    = 'Aceite os termos para continuar';
-    setErrors(e);
-    return Object.keys(e).length === 0;
+  function validateForm() {
+    const newErrors = {};
+    if (!form.nome.trim())                      newErrors.nome      = 'Informe seu nome';
+    if (!form.email.trim())                     newErrors.email     = 'Informe seu e-mail';
+    else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email     = 'E-mail inválido';
+    if (!form.senha)                            newErrors.senha     = 'Crie uma senha';
+    else if (form.senha.length < 6)             newErrors.senha     = 'Mínimo 6 caracteres';
+    if (form.confirmar !== form.senha)          newErrors.confirmar = 'Senhas não coincidem';
+    if (!hasAceito)                             newErrors.aceito    = 'Aceite os termos para continuar';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   }
 
-  function handleCadastro() {
-    if (!validate()) return;
-    setLoading(true);
-    setTimeout(() => { setLoading(false); navigation.navigate('Home'); }, 1200);
+  // INTEGRAÇÃO: substituir setTimeout por chamada real à API
+  // Endpoint: POST /api/auth/register
+  // Body: { nome, email, senha }
+  // Resposta esperada: { token, user: { id, nome, email } }
+  // Salvar token em AsyncStorage e user no contexto global
+  async function handleCadastro() {
+    if (!validateForm()) return;
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      navigation.navigate('Home');
+    }, 1200);
   }
+
+  function handleGoBack()    { navigation.goBack(); }
+  function handleGoToLogin() { navigation.navigate('Login'); }
 
   return (
     <SafeAreaView style={g.screen}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
-          <TouchableOpacity style={g.backButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity style={g.backButton} onPress={handleGoBack}>
             <Text style={g.backText}>← VOLTAR</Text>
           </TouchableOpacity>
 
-          {/* Card */}
           <View style={styles.card}>
             <View style={styles.cardTop}>
               <MSLogo size={44} />
@@ -64,27 +74,20 @@ export default function CadastroScreen({ navigation }) {
             <Input label="Confirmar senha" value={form.confirmar} onChangeText={setField('confirmar')}
               placeholder="Repita a senha" secureTextEntry error={errors.confirmar} />
 
-            <TouchableOpacity style={styles.terms} onPress={() => setAceito(a => !a)} activeOpacity={0.7}>
-              <View style={[styles.checkbox, aceito && styles.checkboxOn]}>
-                {aceito ? <Text style={styles.checkmark}>✓</Text> : null}
+            <TouchableOpacity style={styles.terms} onPress={() => setHasAceito(a => !a)} activeOpacity={0.7}>
+              <View style={[styles.checkbox, hasAceito && styles.checkboxOn]}>
+                {hasAceito ? <Text style={styles.checkmark}>✓</Text> : null}
               </View>
-              <Text style={styles.termsText}>
-                Aceito os termos de uso e política de privacidade
-              </Text>
+              <Text style={styles.termsText}>Aceito os termos de uso e política de privacidade</Text>
             </TouchableOpacity>
             {errors.aceito ? <Text style={styles.errorText}>{errors.aceito}</Text> : null}
 
-            <Button
-              title="CRIAR CONTA"
-              onPress={handleCadastro}
-              loading={loading}
-              style={{ marginTop: spacing.md }}
-            />
+            <Button title="CRIAR CONTA" onPress={handleCadastro} loading={isLoading} style={{ marginTop: spacing.md }} />
           </View>
 
           <View style={g.footerRow}>
             <Text style={g.footerText}>Já tem conta?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <TouchableOpacity onPress={handleGoToLogin}>
               <Text style={g.footerLink}> Entrar</Text>
             </TouchableOpacity>
           </View>
@@ -96,57 +99,15 @@ export default function CadastroScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  scroll: {
-    flexGrow: 1,
-    padding: spacing.lg,
-    justifyContent: 'center',
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  cardTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  cardTitles: { flex: 1 },
-  cardTitle: {
-    fontSize: 22,
-    fontWeight: '900',
-    color: colors.textPrimary,
-    letterSpacing: 2,
-  },
-  cardSub: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 3,
-    fontWeight: '500',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginBottom: spacing.lg,
-  },
-  terms: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: spacing.sm,
-    gap: spacing.sm,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: colors.borderLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  scroll:      { flexGrow: 1, padding: spacing.lg, justifyContent: 'center' },
+  card:        { backgroundColor: colors.surface, borderRadius: radius.xl, padding: spacing.lg, borderWidth: 1, borderColor: colors.border },
+  cardTop:     { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg },
+  cardTitles:  { flex: 1 },
+  cardTitle:   { fontSize: 22, fontWeight: '900', color: colors.textPrimary, letterSpacing: 2 },
+  cardSub:     { fontSize: 12, color: colors.textSecondary, marginTop: 3, fontWeight: '500' },
+  divider:     { height: 1, backgroundColor: colors.border, marginBottom: spacing.lg },
+  terms:       { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, gap: spacing.sm },
+  checkbox:    { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: colors.borderLight, alignItems: 'center', justifyContent: 'center' },
   checkboxOn:  { backgroundColor: colors.primary, borderColor: colors.primary },
   checkmark:   { color: colors.primaryText, fontSize: 12, fontWeight: '900' },
   termsText:   { flex: 1, fontSize: 12, color: colors.textSecondary, lineHeight: 18 },

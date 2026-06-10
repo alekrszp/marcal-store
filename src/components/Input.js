@@ -7,28 +7,32 @@ export default function Input({
   secureTextEntry = false, keyboardType = 'default',
   autoCapitalize = 'none', error,
 }) {
-  const [focused, setFocused] = useState(false);
-  const [hidden,  setHidden]  = useState(secureTextEntry);
+  const [isFocused, setIsFocused] = useState(false);
+  const [isHidden,  setIsHidden]  = useState(secureTextEntry);
 
   return (
     <View style={styles.container}>
       {label ? <Text style={styles.label}>{label.toUpperCase()}</Text> : null}
-      <View style={[styles.wrapper, focused && styles.focused, error && styles.errorBorder]}>
+      <View style={[
+        styles.wrapper,
+        isFocused && styles.focused,
+        error && styles.errorBorder,
+      ]}>
         <TextInput
           style={styles.input}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
           placeholderTextColor={colors.textMuted}
-          secureTextEntry={hidden}
+          secureTextEntry={isHidden}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
         />
         {secureTextEntry
-          ? <TouchableOpacity onPress={() => setHidden(h => !h)}>
-              <Text style={styles.toggle}>{hidden ? 'VER' : 'OCULTAR'}</Text>
+          ? <TouchableOpacity onPress={() => setIsHidden(h => !h)}>
+              <Text style={styles.toggle}>{isHidden ? 'VER' : 'OCULTAR'}</Text>
             </TouchableOpacity>
           : null
         }
