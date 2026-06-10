@@ -7,21 +7,25 @@ import CourseCard from '../components/CourseCard';
 import CategoryChip from '../components/CategoryChip';
 import g from '../theme/globalStyles';
 import { colors, spacing } from '../theme';
-import { COURSES, CATEGORIES, MENTORIAS } from '../data/courses';
+import { useUserContext } from '../context/UserContext';
+import useCourses from '../hooks/useCourses';
+import useCategories from '../hooks/useCategories';
 
 export default function HomeScreen({ navigation }) {
   const [activeCategory, setActiveCategory] = useState('Todos');
+  const { user }                            = useUserContext();
+  const { courses }                         = useCourses(activeCategory);
+  const { courses: mentorias }              = useCourses('Mentoria');
+  const { categories }                      = useCategories();
 
-  const filteredCourses = activeCategory === 'Todos'
-    ? COURSES
-    : COURSES.filter(c => c.category === activeCategory);
-
-  // INTEGRAÇÃO: substituir COURSES e MENTORIAS por estado local
-  // carregado via useEffect → GET /api/courses e GET /api/courses?category=Mentoria
-  // Adicionar isLoading e hasError para feedback visual durante o carregamento
+  const userInitial = user?.nome?.charAt(0).toUpperCase() ?? 'U';
 
   function handleCoursePress(course) {
     navigation.navigate('CourseDetail', { course });
+  }
+
+  function handleVerTudo(category) {
+    navigation.navigate('Courses', { category });
   }
 
   function handleProfilePress() {
@@ -35,7 +39,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.header}>
           <Logo size="sm" />
           <TouchableOpacity style={styles.profileBtn} onPress={handleProfilePress}>
-            <Text style={styles.profileInitial}>A</Text>
+            <Text style={styles.profileInitial}>{userInitial}</Text>
           </TouchableOpacity>
         </View>
 
@@ -46,7 +50,7 @@ export default function HomeScreen({ navigation }) {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoriesRow}
         >
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <CategoryChip
               key={cat}
               label={cat}
@@ -60,13 +64,13 @@ export default function HomeScreen({ navigation }) {
           <Text style={g.sectionTitle}>
             {activeCategory === 'Todos' ? 'Em destaque' : activeCategory}
           </Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => handleVerTudo(activeCategory)}>
             <Text style={g.sectionLink}>Ver tudo</Text>
           </TouchableOpacity>
         </View>
 
         <FlatList
-          data={filteredCourses}
+          data={courses}
           keyExtractor={(item) => item.id}
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -75,19 +79,19 @@ export default function HomeScreen({ navigation }) {
             <CourseCard course={item} onPress={() => handleCoursePress(item)} />
           )}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>Nenhum curso nesta categoria ainda.</Text>
+            <Text style={styles.emptyText}>Nenhum curso nesta categoria.</Text>
           }
         />
 
         <View style={g.sectionHeader}>
           <Text style={g.sectionTitle}>Mentorias</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => handleVerTudo('Mentoria')}>
             <Text style={g.sectionLink}>Ver tudo</Text>
           </TouchableOpacity>
         </View>
 
         <FlatList
-          data={MENTORIAS}
+          data={mentorias}
           keyExtractor={(item) => `mentoria_${item.id}`}
           horizontal
           showsHorizontalScrollIndicator={false}

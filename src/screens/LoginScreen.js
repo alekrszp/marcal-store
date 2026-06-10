@@ -6,6 +6,7 @@ import Button from '../components/Button';
 import { MSLogo } from '../components/Logo';
 import g from '../theme/globalStyles';
 import { colors, spacing, radius } from '../theme';
+import userService from '../services/userService';
 
 export default function LoginScreen({ navigation }) {
   const [email,     setEmail]     = useState('');
@@ -22,18 +23,17 @@ export default function LoginScreen({ navigation }) {
     return Object.keys(newErrors).length === 0;
   }
 
-  // INTEGRAÇÃO: substituir setTimeout por chamada real à API
-  // Endpoint: POST /api/auth/login
-  // Body: { email, senha }
-  // Resposta esperada: { token, user: { id, nome, email } }
-  // Salvar token em AsyncStorage e user no contexto global
   async function handleLogin() {
     if (!validateForm()) return;
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await userService.login(email, senha);
       navigation.navigate('Home');
-    }, 1200);
+    } catch {
+      setErrors({ geral: 'E-mail ou senha incorretos.' });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function handleGoBack()       { navigation.goBack(); }
@@ -64,6 +64,11 @@ export default function LoginScreen({ navigation }) {
             <Input label="Senha" value={senha} onChangeText={setSenha}
               placeholder="••••••••" secureTextEntry error={errors.senha} />
 
+            {errors.geral
+              ? <Text style={styles.errorGeral}>{errors.geral}</Text>
+              : null
+            }
+
             <TouchableOpacity style={styles.forgot}>
               <Text style={styles.forgotText}>ESQUECI MINHA SENHA</Text>
             </TouchableOpacity>
@@ -85,13 +90,14 @@ export default function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  scroll:      { flexGrow: 1, padding: spacing.lg, justifyContent: 'center' },
-  card:        { backgroundColor: colors.surface, borderRadius: radius.xl, padding: spacing.lg, borderWidth: 1, borderColor: colors.border },
-  cardTop:     { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg },
-  cardTitles:  { flex: 1 },
-  cardTitle:   { fontSize: 22, fontWeight: '900', color: colors.textPrimary, letterSpacing: 2 },
-  cardSub:     { fontSize: 12, color: colors.textSecondary, marginTop: 3, fontWeight: '500' },
-  divider:     { height: 1, backgroundColor: colors.border, marginBottom: spacing.lg },
-  forgot:      { alignSelf: 'flex-end', marginBottom: spacing.lg },
-  forgotText:  { fontSize: 10, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5 },
+  scroll:     { flexGrow: 1, padding: spacing.lg, justifyContent: 'center' },
+  card:       { backgroundColor: colors.surface, borderRadius: radius.xl, padding: spacing.lg, borderWidth: 1, borderColor: colors.border },
+  cardTop:    { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg },
+  cardTitles: { flex: 1 },
+  cardTitle:  { fontSize: 22, fontWeight: '900', color: colors.textPrimary, letterSpacing: 2 },
+  cardSub:    { fontSize: 12, color: colors.textSecondary, marginTop: 3, fontWeight: '500' },
+  divider:    { height: 1, backgroundColor: colors.border, marginBottom: spacing.lg },
+  forgot:     { alignSelf: 'flex-end', marginBottom: spacing.lg },
+  forgotText: { fontSize: 10, fontWeight: '700', color: colors.textSecondary, letterSpacing: 1.5 },
+  errorGeral: { color: colors.danger, fontSize: 12, marginBottom: spacing.md, textAlign: 'center' },
 });

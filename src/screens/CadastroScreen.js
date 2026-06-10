@@ -6,6 +6,7 @@ import Button from '../components/Button';
 import { MSLogo } from '../components/Logo';
 import g from '../theme/globalStyles';
 import { colors, spacing, radius } from '../theme';
+import userService from '../services/userService';
 
 export default function CadastroScreen({ navigation }) {
   const [form,      setForm]      = useState({ nome: '', email: '', senha: '', confirmar: '' });
@@ -28,18 +29,17 @@ export default function CadastroScreen({ navigation }) {
     return Object.keys(newErrors).length === 0;
   }
 
-  // INTEGRAÇÃO: substituir setTimeout por chamada real à API
-  // Endpoint: POST /api/auth/register
-  // Body: { nome, email, senha }
-  // Resposta esperada: { token, user: { id, nome, email } }
-  // Salvar token em AsyncStorage e user no contexto global
   async function handleCadastro() {
     if (!validateForm()) return;
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await userService.register(form.nome, form.email, form.senha);
       navigation.navigate('Home');
-    }, 1200);
+    } catch {
+      setErrors({ geral: 'Erro ao criar conta. Tente novamente.' });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function handleGoBack()    { navigation.goBack(); }
@@ -74,6 +74,11 @@ export default function CadastroScreen({ navigation }) {
             <Input label="Confirmar senha" value={form.confirmar} onChangeText={setField('confirmar')}
               placeholder="Repita a senha" secureTextEntry error={errors.confirmar} />
 
+            {errors.geral
+              ? <Text style={styles.errorGeral}>{errors.geral}</Text>
+              : null
+            }
+
             <TouchableOpacity style={styles.terms} onPress={() => setHasAceito(a => !a)} activeOpacity={0.7}>
               <View style={[styles.checkbox, hasAceito && styles.checkboxOn]}>
                 {hasAceito ? <Text style={styles.checkmark}>✓</Text> : null}
@@ -99,17 +104,18 @@ export default function CadastroScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  scroll:      { flexGrow: 1, padding: spacing.lg, justifyContent: 'center' },
-  card:        { backgroundColor: colors.surface, borderRadius: radius.xl, padding: spacing.lg, borderWidth: 1, borderColor: colors.border },
-  cardTop:     { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg },
-  cardTitles:  { flex: 1 },
-  cardTitle:   { fontSize: 22, fontWeight: '900', color: colors.textPrimary, letterSpacing: 2 },
-  cardSub:     { fontSize: 12, color: colors.textSecondary, marginTop: 3, fontWeight: '500' },
-  divider:     { height: 1, backgroundColor: colors.border, marginBottom: spacing.lg },
-  terms:       { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, gap: spacing.sm },
-  checkbox:    { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: colors.borderLight, alignItems: 'center', justifyContent: 'center' },
-  checkboxOn:  { backgroundColor: colors.primary, borderColor: colors.primary },
-  checkmark:   { color: colors.primaryText, fontSize: 12, fontWeight: '900' },
-  termsText:   { flex: 1, fontSize: 12, color: colors.textSecondary, lineHeight: 18 },
-  errorText:   { color: colors.danger, fontSize: 12, marginTop: spacing.xs },
+  scroll:     { flexGrow: 1, padding: spacing.lg, justifyContent: 'center' },
+  card:       { backgroundColor: colors.surface, borderRadius: radius.xl, padding: spacing.lg, borderWidth: 1, borderColor: colors.border },
+  cardTop:    { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg },
+  cardTitles: { flex: 1 },
+  cardTitle:  { fontSize: 22, fontWeight: '900', color: colors.textPrimary, letterSpacing: 2 },
+  cardSub:    { fontSize: 12, color: colors.textSecondary, marginTop: 3, fontWeight: '500' },
+  divider:    { height: 1, backgroundColor: colors.border, marginBottom: spacing.lg },
+  terms:      { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, gap: spacing.sm },
+  checkbox:   { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: colors.borderLight, alignItems: 'center', justifyContent: 'center' },
+  checkboxOn: { backgroundColor: colors.primary, borderColor: colors.primary },
+  checkmark:  { color: colors.primaryText, fontSize: 12, fontWeight: '900' },
+  termsText:  { flex: 1, fontSize: 12, color: colors.textSecondary, lineHeight: 18 },
+  errorText:  { color: colors.danger, fontSize: 12, marginTop: spacing.xs },
+  errorGeral: { color: colors.danger, fontSize: 12, marginBottom: spacing.md, textAlign: 'center' },
 });
