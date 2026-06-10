@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import g from '../theme/globalStyles';
 import { colors, spacing, radius, typography } from '../theme';
+import { formatCurrency } from '../utils/formatters';
 
 export default function CourseDetailScreen({ navigation, route }) {
   const { course } = route.params;
@@ -10,11 +11,6 @@ export default function CourseDetailScreen({ navigation, route }) {
   function handleGoBack() {
     navigation.goBack();
   }
-
-  const formattedPrice = new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(Number(course.price));
 
   return (
     <SafeAreaView style={g.screen}>
@@ -42,10 +38,42 @@ export default function CourseDetailScreen({ navigation, route }) {
           <Text style={styles.title}>{course.title}</Text>
           <Text style={styles.mentor}>por {course.mentor}</Text>
 
+          {course.cargaHoraria ? (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>⏱ {course.cargaHoraria} de conteúdo</Text>
+            </View>
+          ) : null}
+
           <View style={styles.divider} />
 
-          <View style={styles.priceRow}>
-            <Text style={styles.price}>{formattedPrice}</Text>
+          {course.descricao ? (
+            <>
+              <Text style={styles.sectionTitle}>SOBRE O CURSO</Text>
+              <Text style={styles.descricao}>{course.descricao}</Text>
+              <View style={styles.divider} />
+            </>
+          ) : null}
+
+          {course.modulos?.length ? (
+            <>
+              <Text style={styles.sectionTitle}>O QUE VOCÊ VAI APRENDER</Text>
+              <View style={styles.modulosList}>
+                {course.modulos.map((modulo, index) => (
+                  <View key={index} style={styles.moduloRow}>
+                    <View style={styles.moduloBullet} />
+                    <Text style={styles.moduloText}>{modulo}</Text>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.divider} />
+            </>
+          ) : null}
+
+          <View style={styles.buySection}>
+            <View>
+              <Text style={styles.priceLabel}>INVESTIMENTO</Text>
+              <Text style={styles.price}>{formatCurrency(course.price)}</Text>
+            </View>
             <TouchableOpacity style={styles.buyButton}>
               <Text style={styles.buyButtonText}>QUERO ESTE CURSO</Text>
             </TouchableOpacity>
@@ -58,20 +86,29 @@ export default function CourseDetailScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  imageContainer: { height: 260, position: 'relative' },
+  imageContainer: { height: 280, position: 'relative' },
   image:          { width: '100%', height: '100%' },
-  imageOverlay:   { position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)' },
+  imageOverlay:   { position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)' },
   backButton:     { position: 'absolute', top: spacing.lg, left: spacing.lg },
-  backText:       { fontSize: 12, fontWeight: '700', color: colors.primaryText, letterSpacing: 1.5 },
-  tag:            { position: 'absolute', top: spacing.lg, right: spacing.lg, backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full },
-  tagText:        { fontSize: 10, fontWeight: '800', color: colors.primaryText, letterSpacing: 1 },
+  backText:       { ...typography.caption, fontWeight: '700', color: colors.primaryText, letterSpacing: 1.5 },
+  tag:            { position: 'absolute', top: spacing.lg, right: spacing.lg, backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full },
+  tagText:        { ...typography.nano, color: colors.primaryText },
   content:        { padding: spacing.lg },
-  category:       { fontSize: 11, fontWeight: '700', color: colors.primary, letterSpacing: 2, marginBottom: spacing.xs },
-  title:          { ...typography.h2, color: colors.textPrimary, marginBottom: spacing.sm },
-  mentor:         { fontSize: 14, color: colors.textSecondary, fontWeight: '500' },
+  category:       { ...typography.micro, color: colors.primary, marginBottom: spacing.xs },
+  title:          { ...typography.h2, color: colors.textPrimary, marginBottom: spacing.xs },
+  mentor:         { ...typography.subtitle, color: colors.textSecondary, marginBottom: spacing.md },
+  badge:          { alignSelf: 'flex-start', backgroundColor: colors.surfaceAlt, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderWidth: 1, borderColor: colors.border },
+  badgeText:      { ...typography.caption, color: colors.textSecondary },
   divider:        { height: 1, backgroundColor: colors.border, marginVertical: spacing.lg },
-  priceRow:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
-  price:          { fontSize: 28, fontWeight: '900', color: colors.primary },
+  sectionTitle:   { ...typography.micro, color: colors.textSecondary, marginBottom: spacing.md },
+  descricao:      { ...typography.body, color: colors.textPrimary },
+  modulosList:    { gap: spacing.sm },
+  moduloRow:      { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  moduloBullet:   { width: spacing.sm, height: spacing.sm, borderRadius: radius.full, backgroundColor: colors.primary },
+  moduloText:     { ...typography.subtitle, color: colors.textPrimary, flex: 1 },
+  buySection:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
+  priceLabel:     { ...typography.micro, color: colors.textSecondary, marginBottom: spacing.xs },
+  price:          { ...typography.h4, color: colors.primary },
   buyButton:      { flex: 1, backgroundColor: colors.primary, paddingVertical: spacing.md, borderRadius: radius.md, alignItems: 'center' },
   buyButtonText:  { ...typography.button, color: colors.primaryText },
 });

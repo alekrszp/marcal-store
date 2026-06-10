@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { colors, spacing, radius } from '../theme';
+import { colors, spacing, radius, typography } from '../theme';
 
 export default function CategoryChip({ label, isActive, onPress }) {
   return (
@@ -15,8 +15,8 @@ export default function CategoryChip({ label, isActive, onPress }) {
 }
 
 const styles = StyleSheet.create({
-  chip:       { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.full, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, marginRight: spacing.sm },
+  chip:       { height: 36, paddingHorizontal: spacing.md, borderRadius: radius.full, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, marginRight: spacing.sm, alignItems: 'center', justifyContent: 'center' },
   chipActive: { backgroundColor: colors.primary, borderColor: colors.primary },
-  text:       { fontSize: 13, fontWeight: '700', color: colors.textSecondary },
+  text:       { ...typography.small, color: colors.textSecondary },
   textActive: { color: colors.primaryText },
 });

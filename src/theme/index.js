@@ -22,11 +22,18 @@ export const radius = {
 };
 
 export const typography = {
-  h1:      { fontSize: 48, fontWeight: '900', letterSpacing: -2 },
-  h2:      { fontSize: 30, fontWeight: '900', letterSpacing: -1 },
-  h3:      { fontSize: 20, fontWeight: '800' },
-  body:    { fontSize: 15, fontWeight: '400', lineHeight: 22 },
-  caption: { fontSize: 12, fontWeight: '500' },
-  button:  { fontSize: 15, fontWeight: '900', letterSpacing: 1.5 },
-  label:   { fontSize: 11, fontWeight: '700', letterSpacing: 2 },
+  h1:       { fontSize: 48, fontWeight: '900', letterSpacing: -2 },
+  h2:       { fontSize: 30, fontWeight: '900', letterSpacing: -1 },
+  h3:       { fontSize: 20, fontWeight: '800' },
+  h4:       { fontSize: 28, fontWeight: '900' },
+  subtitle: { fontSize: 14, fontWeight: '500' },
+  body:     { fontSize: 15, fontWeight: '400', lineHeight: 24 },
+  bodyBold: { fontSize: 14, fontWeight: '800' },
+  small:    { fontSize: 13, fontWeight: '700' },
+  caption:  { fontSize: 12, fontWeight: '500' },
+  micro:    { fontSize: 11, fontWeight: '700', letterSpacing: 2 },
+  nano:     { fontSize: 10, fontWeight: '800', letterSpacing: 1 },
+  tiny:     { fontSize: 9,  fontWeight: '800', letterSpacing: 1 },
+  button:   { fontSize: 15, fontWeight: '900', letterSpacing: 1.5 },
+  label:    { fontSize: 11, fontWeight: '700', letterSpacing: 2 },
 };

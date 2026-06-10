@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { colors, spacing, radius } from '../theme';
+import { colors, spacing, radius, typography } from '../theme';
+import { formatCurrency } from '../utils/formatters';
 
-export default function CourseCard({ course, onPress }) {
+export default function CourseCard({ course, onPress, style }) {
   return (
-    <TouchableOpacity style={styles.card} activeOpacity={0.85} onPress={onPress}>
+    <TouchableOpacity style={[styles.card, style]} activeOpacity={0.85} onPress={onPress}>
       <View style={styles.thumbContainer}>
         <Image
           source={{ uri: course.image }}
@@ -24,9 +25,7 @@ export default function CourseCard({ course, onPress }) {
         <Text style={styles.title} numberOfLines={1}>{course.title}</Text>
         <Text style={styles.mentor} numberOfLines={1}>{course.mentor}</Text>
         <View style={styles.footer}>
-          <Text style={styles.price}>
-            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(course.price)}
-            </Text>
+          <Text style={styles.price}>{formatCurrency(course.price)}</Text>
           <TouchableOpacity style={styles.btn} onPress={onPress}>
             <Text style={styles.btnText}>VER</Text>
           </TouchableOpacity>
@@ -41,13 +40,13 @@ const styles = StyleSheet.create({
   thumbContainer: { height: 120, position: 'relative' },
   image:          { width: '100%', height: '100%' },
   overlay:        { position: 'absolute', bottom: 0, left: 0, right: 0, height: 40, backgroundColor: 'rgba(0,0,0,0.4)' },
-  tag:            { position: 'absolute', top: spacing.sm, left: spacing.sm, backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radius.full },
-  tagText:        { fontSize: 9, fontWeight: '800', color: colors.primaryText, letterSpacing: 1 },
+  tag:            { position: 'absolute', top: spacing.sm, left: spacing.sm, backgroundColor: colors.primary, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs - 1, borderRadius: radius.full },
+  tagText:        { ...typography.tiny, color: colors.primaryText },
   body:           { padding: spacing.md },
-  title:          { fontSize: 14, fontWeight: '800', color: colors.textPrimary },
-  mentor:         { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+  title:          { ...typography.bodyBold, color: colors.textPrimary },
+  mentor:         { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xs },
   footer:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.md },
-  price:          { fontSize: 16, fontWeight: '900', color: colors.primary },
-  btn:            { backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: 6, borderRadius: radius.sm },
-  btnText:        { fontSize: 11, fontWeight: '900', color: colors.primaryText, letterSpacing: 1 },
+  price:          { ...typography.bodyBold, color: colors.primary },
+  btn:            { backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.sm - 2, borderRadius: radius.sm },
+  btnText:        { ...typography.nano, color: colors.primaryText },
 });

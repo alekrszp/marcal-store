@@ -4,12 +4,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CourseCard from '../components/CourseCard';
 import CategoryChip from '../components/CategoryChip';
 import g from '../theme/globalStyles';
-import { colors, spacing } from '../theme';
+import { colors, spacing, typography } from '../theme';
 import useCourses from '../hooks/useCourses';
 import useCategories from '../hooks/useCategories';
 
 export default function CoursesScreen({ navigation, route }) {
-  const initialCategory              = route.params?.category ?? 'Todos';
+  const initialCategory             = route.params?.category ?? 'Todos';
   const [activeCategory, setActiveCategory] = useState(initialCategory);
   const { courses }                         = useCourses(activeCategory);
   const { categories }                      = useCategories();
@@ -35,6 +35,7 @@ export default function CoursesScreen({ navigation, route }) {
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.categoriesRow}
+        style={styles.categoriesScroll}
       >
         {categories.map((cat) => (
           <CategoryChip
@@ -53,9 +54,11 @@ export default function CoursesScreen({ navigation, route }) {
         contentContainerStyle={styles.grid}
         columnWrapperStyle={styles.row}
         renderItem={({ item }) => (
-          <View style={styles.cardWrap}>
-            <CourseCard course={item} onPress={() => handleCoursePress(item)} />
-          </View>
+          <CourseCard
+            course={item}
+            onPress={() => handleCoursePress(item)}
+            style={styles.card}
+          />
         )}
         ListEmptyComponent={
           <Text style={styles.emptyText}>Nenhum curso encontrado.</Text>
@@ -66,11 +69,12 @@ export default function CoursesScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  header:        { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
-  title:         { fontSize: 28, fontWeight: '900', color: colors.textPrimary, letterSpacing: -1, marginBottom: spacing.md },
-  categoriesRow: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
-  grid:          { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
-  row:           { justifyContent: 'space-between', marginBottom: spacing.md },
-  cardWrap:      { width: '48%' },
-  emptyText:     { color: colors.textSecondary, fontSize: 13, textAlign: 'center', marginTop: spacing.xl },
+  header:           { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  title:            { ...typography.h2, color: colors.textPrimary, marginBottom: spacing.md },
+  categoriesScroll: { flexGrow: 0 },
+  categoriesRow:    { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, alignItems: 'center' },
+  grid:             { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, paddingTop: spacing.sm },
+  row:              { justifyContent: 'space-between', marginBottom: spacing.md },
+  card:             { width: '48%' },
+  emptyText:        { ...typography.small, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl },
 });
