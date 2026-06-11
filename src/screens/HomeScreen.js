@@ -9,14 +9,17 @@ import CategoryFilterBar from '../components/CategoryFilterBar';
 import SectionHeader from '../components/SectionHeader';
 import ProdutoRow from '../components/ProdutoRow';
 import ProfileButton from '../components/ProfileButton';
+import CartButton from '../components/CartButton';
 import { colors, spacing } from '../theme';
 import { useUserContext } from '../context/UserContext';
+import { useCartContext } from '../context/CartContext';
 import useProdutos from '../hooks/useProdutos';
 import useCategories from '../hooks/useCategories';
 
 export default function HomeScreen({ navigation }) {
   const [activeCategory, setActiveCategory] = useState('Todos');
   const { user }                            = useUserContext();
+  const { itemCount }                       = useCartContext();
   const { produtos, reload: reloadProdutos }       = useProdutos(activeCategory);
   const { produtos: mentorias, reload: reloadMentorias } = useProdutos('Mentoria');
   const { categories }                      = useCategories();
@@ -42,13 +45,20 @@ export default function HomeScreen({ navigation }) {
     navigation.navigate('Profile');
   }
 
+  function handleCartPress() {
+    navigation.navigate('Cart');
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
 
         <View style={styles.header}>
           <Logo size="sm" />
-          <ProfileButton initial={userInitial} avatar={user?.avatar} onPress={handleProfilePress} />
+          <View style={styles.headerActions}>
+            <CartButton itemCount={itemCount} onPress={handleCartPress} />
+            <ProfileButton initial={userInitial} avatar={user?.avatar} onPress={handleProfilePress} />
+          </View>
         </View>
 
         <HeroBanner />
@@ -81,5 +91,6 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe:         { flex: 1, backgroundColor: colors.background },
   header:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+  headerActions:{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   bottomSpacer: { height: spacing.xxl },
 });

@@ -1,16 +1,30 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ModuloItem from '../components/ModuloItem';
 import g from '../theme/globalStyles';
 import { colors, spacing, radius, typography } from '../theme';
 import { formatCurrency } from '../utils/formatters';
+import { useCartContext } from '../context/CartContext';
 
 export default function ProdutoDetailScreen({ navigation, route }) {
-  const { produto } = route.params;
+  const { produto }  = route.params;
+  const { addItem }  = useCartContext();
 
   function handleGoBack() {
     navigation.goBack();
+  }
+
+  async function handleAdicionarAoCarrinho() {
+    await addItem(produto);
+    Alert.alert(
+      'Adicionado ao carrinho',
+      `${produto.title} foi adicionado ao seu carrinho.`,
+      [
+        { text: 'Continuar comprando', style: 'cancel' },
+        { text: 'Ver carrinho', onPress: () => navigation.navigate('Cart') },
+      ]
+    );
   }
 
   return (
@@ -64,14 +78,14 @@ export default function ProdutoDetailScreen({ navigation, route }) {
           ) : null}
 
           <View style={styles.buySection}>
-            <View style={styles.priceBlock}>
+            <View>
               <Text style={styles.priceLabel}>INVESTIMENTO</Text>
               <Text style={styles.price} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
                 {formatCurrency(produto.price)}
               </Text>
             </View>
-            <TouchableOpacity style={styles.buyButton}>
-              <Text style={styles.buyButtonText}>QUERO ESTE CURSO</Text>
+            <TouchableOpacity style={styles.buyButton} onPress={handleAdicionarAoCarrinho}>
+              <Text style={styles.buyButtonText}>ADICIONAR AO CARRINHO</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -99,10 +113,9 @@ const styles = StyleSheet.create({
   sectionTitle:   { ...typography.micro, color: colors.textSecondary, marginBottom: spacing.md },
   descricao:      { ...typography.body, color: colors.textPrimary },
   modulosList:    { gap: spacing.sm },
-  buySection:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
-  priceBlock:     { flexShrink: 1 },
+  buySection:     { gap: spacing.md },
   priceLabel:     { ...typography.micro, color: colors.textSecondary, marginBottom: spacing.xs },
   price:          { ...typography.h4, color: colors.primary },
-  buyButton:      { flexShrink: 0, backgroundColor: colors.primary, paddingVertical: spacing.md, paddingHorizontal: spacing.lg, borderRadius: radius.md, alignItems: 'center' },
+  buyButton:      { backgroundColor: colors.primary, paddingVertical: spacing.md, paddingHorizontal: spacing.lg, borderRadius: radius.md, alignItems: 'center' },
   buyButtonText:  { ...typography.button, color: colors.primaryText },
 });
