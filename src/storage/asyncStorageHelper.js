@@ -14,6 +14,7 @@ const KEYS = {
   TOKEN:         '@marcalstore:token',
   REFRESH_TOKEN: '@marcalstore:refreshToken',
   AVATAR:        '@marcalstore:avatar',
+  PRODUTOS:      '@marcalstore:produtos',
 };
 
 async function save(key, value) {

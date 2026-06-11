@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import AvatarPicker from '../components/AvatarPicker';
 import InfoRow from '../components/InfoRow';
+import Button from '../components/Button';
 import g from '../theme/globalStyles';
 import { colors, spacing, radius, typography } from '../theme';
 import { useUserContext } from '../context/UserContext';
@@ -49,6 +50,10 @@ export default function ProfileScreen({ navigation }) {
     navigation.goBack();
   }
 
+  function handleAdminPress() {
+    navigation.navigate('AdminProdutos');
+  }
+
   return (
     <SafeAreaView style={g.screen}>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -67,6 +72,15 @@ export default function ProfileScreen({ navigation }) {
           <InfoRow label="E-MAIL" value={user?.email ?? ''} />
         </View>
 
+        {user?.role === 'admin' ? (
+          <Button
+            title="ÁREA ADMIN"
+            onPress={handleAdminPress}
+            variant="outline"
+            style={styles.adminBtn}
+          />
+        ) : null}
+
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout} activeOpacity={0.8}>
           <Text style={styles.logoutText}>SAIR DA CONTA</Text>
         </TouchableOpacity>
@@ -80,6 +94,7 @@ const styles = StyleSheet.create({
   scroll:        { flexGrow: 1, padding: spacing.lg },
   avatarSection: { alignItems: 'center', marginBottom: spacing.xl },
   card:          { backgroundColor: colors.surface, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.border, overflow: 'hidden', marginBottom: spacing.xl },
+  adminBtn:      { marginBottom: spacing.md },
   divider:       { height: 1, backgroundColor: colors.border },
   logoutBtn:     { height: 56, borderRadius: radius.md, borderWidth: 1, borderColor: colors.danger, alignItems: 'center', justifyContent: 'center' },
   logoutText:    { ...typography.small, fontWeight: '900', color: colors.danger, letterSpacing: 2 },

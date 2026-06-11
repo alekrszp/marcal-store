@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import courseService from '../services/courseService';
+import produtoService from '../services/produtoService';
 
 export default function useCategories() {
   const [categories, setCategories] = useState([]);
@@ -12,7 +12,7 @@ export default function useCategories() {
 
   async function loadCategories() {
     try {
-      const data = await courseService.getCategories();
+      const data = await produtoService.getCategories();
       setCategories(data);
     } catch (err) {
       setHasError(err.message || true);

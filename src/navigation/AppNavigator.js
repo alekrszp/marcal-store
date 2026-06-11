@@ -4,13 +4,15 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useUserContext } from '../context/UserContext';
 import { colors } from '../theme';
-import WelcomeScreen      from '../screens/WelcomeScreen';
-import LoginScreen        from '../screens/LoginScreen';
-import CadastroScreen     from '../screens/CadastroScreen';
-import HomeScreen         from '../screens/HomeScreen';
-import ProfileScreen      from '../screens/ProfileScreen';
-import CoursesScreen      from '../screens/CoursesScreen';
-import CourseDetailScreen from '../screens/CourseDetailScreen';
+import WelcomeScreen        from '../screens/WelcomeScreen';
+import LoginScreen          from '../screens/LoginScreen';
+import CadastroScreen       from '../screens/CadastroScreen';
+import HomeScreen           from '../screens/HomeScreen';
+import ProfileScreen        from '../screens/ProfileScreen';
+import ProdutosScreen       from '../screens/ProdutosScreen';
+import ProdutoDetailScreen  from '../screens/ProdutoDetailScreen';
+import AdminProdutosScreen  from '../screens/AdminProdutosScreen';
+import AdminProdutoFormScreen from '../screens/AdminProdutoFormScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,10 +29,12 @@ function AuthStack() {
 function AppStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Home"         component={HomeScreen}         />
-      <Stack.Screen name="Profile"      component={ProfileScreen}      />
-      <Stack.Screen name="Courses"      component={CoursesScreen}      />
-      <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
+      <Stack.Screen name="Home"            component={HomeScreen}            />
+      <Stack.Screen name="Profile"         component={ProfileScreen}         />
+      <Stack.Screen name="Produtos"        component={ProdutosScreen}        />
+      <Stack.Screen name="ProdutoDetail"   component={ProdutoDetailScreen}   />
+      <Stack.Screen name="AdminProdutos"   component={AdminProdutosScreen}   />
+      <Stack.Screen name="AdminProdutoForm" component={AdminProdutoFormScreen} />
     </Stack.Navigator>
   );
 }

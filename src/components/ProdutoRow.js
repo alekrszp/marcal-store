@@ -1,25 +1,25 @@
 import React from 'react';
 import { FlatList, Text, StyleSheet } from 'react-native';
-import CourseCard from './CourseCard';
+import ProdutoCard from './ProdutoCard';
 import { colors, spacing, typography } from '../theme';
 
-export default function CourseRow({ courses, onCoursePress }) {
+export default function ProdutoRow({ produtos, onProdutoPress }) {
   return (
     <FlatList
-      data={courses}
+      data={produtos}
       keyExtractor={(item) => item.id}
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.list}
       renderItem={({ item }) => (
-        <CourseCard
-          course={item}
-          onPress={() => onCoursePress(item)}
+        <ProdutoCard
+          produto={item}
+          onPress={() => onProdutoPress(item)}
           style={styles.card}
         />
       )}
       ListEmptyComponent={
-        <Text style={styles.empty}>Nenhum curso nesta categoria.</Text>
+        <Text style={styles.empty}>Nenhum produto nesta categoria.</Text>
       }
     />
   );

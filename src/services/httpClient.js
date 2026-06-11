@@ -1,5 +1,5 @@
 // Cliente HTTP centralizado para integração com a API real.
-// Usado pelos services (userService, courseService, etc.) quando USE_MOCK = false.
+// Usado pelos services (userService, produtoService, etc.) quando USE_MOCK = false.
 //
 // Centraliza:
 // - Montagem da URL (API_URL + endpoint)

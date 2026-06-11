@@ -6,8 +6,8 @@ import g from '../theme/globalStyles';
 import { colors, spacing, radius, typography } from '../theme';
 import { formatCurrency } from '../utils/formatters';
 
-export default function CourseDetailScreen({ navigation, route }) {
-  const { course } = route.params;
+export default function ProdutoDetailScreen({ navigation, route }) {
+  const { produto } = route.params;
 
   function handleGoBack() {
     navigation.goBack();
@@ -18,44 +18,44 @@ export default function CourseDetailScreen({ navigation, route }) {
       <ScrollView showsVerticalScrollIndicator={false}>
 
         <View style={styles.imageContainer}>
-          <Image source={{ uri: course.image }} style={styles.image} resizeMode="cover" />
+          <Image source={{ uri: produto.image }} style={styles.image} resizeMode="cover" />
           <View style={styles.imageOverlay} />
           <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
             <Text style={styles.backText}>← VOLTAR</Text>
           </TouchableOpacity>
-          {course.tag ? (
+          {produto.tag ? (
             <View style={styles.tag}>
-              <Text style={styles.tagText}>{course.tag}</Text>
+              <Text style={styles.tagText}>{produto.tag}</Text>
             </View>
           ) : null}
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.category}>{course.category.toUpperCase()}</Text>
-          <Text style={styles.title}>{course.title}</Text>
-          <Text style={styles.mentor}>por {course.mentor}</Text>
+          <Text style={styles.category}>{produto.category.toUpperCase()}</Text>
+          <Text style={styles.title}>{produto.title}</Text>
+          <Text style={styles.mentor}>por {produto.mentor}</Text>
 
-          {course.cargaHoraria ? (
+          {produto.cargaHoraria ? (
             <View style={styles.badge}>
-              <Text style={styles.badgeText}>⏱ {course.cargaHoraria} de conteúdo</Text>
+              <Text style={styles.badgeText}>⏱ {produto.cargaHoraria} de conteúdo</Text>
             </View>
           ) : null}
 
           <View style={styles.divider} />
 
-          {course.descricao ? (
+          {produto.descricao ? (
             <>
               <Text style={styles.sectionTitle}>SOBRE O CURSO</Text>
-              <Text style={styles.descricao}>{course.descricao}</Text>
+              <Text style={styles.descricao}>{produto.descricao}</Text>
               <View style={styles.divider} />
             </>
           ) : null}
 
-          {course.modulos?.length ? (
+          {produto.modulos?.length ? (
             <>
               <Text style={styles.sectionTitle}>O QUE VOCÊ VAI APRENDER</Text>
               <View style={styles.modulosList}>
-                {course.modulos.map((modulo, index) => (
+                {produto.modulos.map((modulo, index) => (
                   <ModuloItem key={index} title={modulo} />
                 ))}
               </View>
@@ -66,7 +66,7 @@ export default function CourseDetailScreen({ navigation, route }) {
           <View style={styles.buySection}>
             <View>
               <Text style={styles.priceLabel}>INVESTIMENTO</Text>
-              <Text style={styles.price}>{formatCurrency(course.price)}</Text>
+              <Text style={styles.price}>{formatCurrency(produto.price)}</Text>
             </View>
             <TouchableOpacity style={styles.buyButton}>
               <Text style={styles.buyButtonText}>QUERO ESTE CURSO</Text>

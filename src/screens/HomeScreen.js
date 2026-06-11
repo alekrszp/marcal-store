@@ -1,33 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScrollView } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Logo from '../components/Logo';
 import HeroBanner from '../components/HeroBanner';
 import CategoryFilterBar from '../components/CategoryFilterBar';
 import SectionHeader from '../components/SectionHeader';
-import CourseRow from '../components/CourseRow';
+import ProdutoRow from '../components/ProdutoRow';
 import ProfileButton from '../components/ProfileButton';
 import { colors, spacing } from '../theme';
 import { useUserContext } from '../context/UserContext';
-import useCourses from '../hooks/useCourses';
+import useProdutos from '../hooks/useProdutos';
 import useCategories from '../hooks/useCategories';
 
 export default function HomeScreen({ navigation }) {
   const [activeCategory, setActiveCategory] = useState('Todos');
   const { user }                            = useUserContext();
-  const { courses }                         = useCourses(activeCategory);
-  const { courses: mentorias }              = useCourses('Mentoria');
+  const { produtos, reload: reloadProdutos }       = useProdutos(activeCategory);
+  const { produtos: mentorias, reload: reloadMentorias } = useProdutos('Mentoria');
   const { categories }                      = useCategories();
 
   const userInitial = user?.nome?.charAt(0).toUpperCase() ?? 'U';
 
-  function handleCoursePress(course) {
-    navigation.navigate('CourseDetail', { course });
+  useFocusEffect(
+    useCallback(() => {
+      reloadProdutos();
+      reloadMentorias();
+    }, [reloadProdutos, reloadMentorias])
+  );
+
+  function handleProdutoPress(produto) {
+    navigation.navigate('ProdutoDetail', { produto });
   }
 
   function handleVerTudo(category) {
-    navigation.navigate('Courses', { category });
+    navigation.navigate('Produtos', { category });
   }
 
   function handleProfilePress() {
@@ -55,13 +63,13 @@ export default function HomeScreen({ navigation }) {
           title={activeCategory === 'Todos' ? 'Em destaque' : activeCategory}
           onVerTudo={() => handleVerTudo(activeCategory)}
         />
-        <CourseRow courses={courses} onCoursePress={handleCoursePress} />
+        <ProdutoRow produtos={produtos} onProdutoPress={handleProdutoPress} />
 
         <SectionHeader
           title="Mentorias"
           onVerTudo={() => handleVerTudo('Mentoria')}
         />
-        <CourseRow courses={mentorias} onCoursePress={handleCoursePress} />
+        <ProdutoRow produtos={mentorias} onProdutoPress={handleProdutoPress} />
 
         <View style={styles.bottomSpacer} />
 

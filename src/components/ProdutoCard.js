@@ -3,28 +3,28 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { colors, spacing, radius, typography } from '../theme';
 import { formatCurrency } from '../utils/formatters';
 
-export default function CourseCard({ course, onPress, style }) {
+export default function ProdutoCard({ produto, onPress, style }) {
   return (
     <TouchableOpacity style={[styles.card, style]} activeOpacity={0.85} onPress={onPress}>
       <View style={styles.thumbContainer}>
         <Image
-          source={{ uri: course.image }}
+          source={{ uri: produto.image }}
           style={styles.image}
           resizeMode="cover"
         />
-        {course.tag ? (
+        {produto.tag ? (
           <View style={styles.tag}>
-            <Text style={styles.tagText}>{course.tag}</Text>
+            <Text style={styles.tagText}>{produto.tag}</Text>
           </View>
         ) : null}
         <View style={styles.overlay} />
       </View>
 
       <View style={styles.body}>
-        <Text style={styles.title} numberOfLines={1}>{course.title}</Text>
-        <Text style={styles.mentor} numberOfLines={1}>{course.mentor}</Text>
+        <Text style={styles.title} numberOfLines={1}>{produto.title}</Text>
+        <Text style={styles.mentor} numberOfLines={1}>{produto.mentor}</Text>
         <View style={styles.footer}>
-          <Text style={styles.price}>{formatCurrency(course.price)}</Text>
+          <Text style={styles.price}>{formatCurrency(produto.price)}</Text>
           <TouchableOpacity style={styles.btn} onPress={onPress}>
             <Text style={styles.btnText}>VER</Text>
           </TouchableOpacity>

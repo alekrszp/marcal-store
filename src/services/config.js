@@ -9,7 +9,7 @@
 // 1. Trocar USE_MOCK para false
 // 2. Apontar API_URL para o servidor (ex: https://api.marcalstore.com.br)
 // 3. Garantir HTTPS em produção (nunca usar http:// fora de ambiente local de desenvolvimento)
-// 4. Conferir os comentários "INTEGRAÇÃO:" em cada service (userService, courseService)
+// 4. Conferir os comentários "INTEGRAÇÃO:" em cada service (userService, produtoService)
 //    para os contratos (rotas, headers, formato de request/response) esperados pelo app
 export const USE_MOCK = true;
 export const API_URL  = 'https://api.marcalstore.com.br';

@@ -1,11 +1,15 @@
 // INTEGRAÇÃO: substituir este arquivo por chamadas reais à API
-// Endpoint esperado: GET /api/courses → Array<Course>
+// Endpoint esperado: GET /api/produtos → Array<Produto>
 // Endpoint esperado: GET /api/categories → Array<string>
-// Modelo Course: { id, title, mentor, price, tag?, category, image, descricao?, cargaHoraria?, modulos? }
+// Modelo Produto: { id, title, mentor, price, tag?, category, image, descricao?, cargaHoraria?, modulos? }
+//
+// Esta lista também serve como "seed" inicial dos produtos persistidos
+// localmente (ver produtoService.js) — o admin pode editar/excluir/criar
+// produtos a partir dela.
 
 export const CATEGORIES = ['Todos', 'Mentoria', 'Negócios', 'Mindset', 'Vendas', 'Liderança'];
 
-export const COURSES = [
+export const PRODUTOS = [
   {
     id: '1', title: 'Mente Milionária', mentor: 'Pablo Marçal', price: 997, tag: 'TOP', category: 'Mentoria',
     image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400&q=80',
@@ -50,4 +54,4 @@ export const COURSES = [
   },
 ];
 
-export const MENTORIAS = COURSES.filter(c => c.category === 'Mentoria');
+export const MENTORIAS = PRODUTOS.filter(p => p.category === 'Mentoria');

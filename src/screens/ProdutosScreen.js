@@ -1,21 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import CourseCard from '../components/CourseCard';
+import { useFocusEffect } from '@react-navigation/native';
+import ProdutoCard from '../components/ProdutoCard';
 import CategoryFilterBar from '../components/CategoryFilterBar';
 import g from '../theme/globalStyles';
 import { colors, spacing, typography } from '../theme';
-import useCourses from '../hooks/useCourses';
+import useProdutos from '../hooks/useProdutos';
 import useCategories from '../hooks/useCategories';
 
-export default function CoursesScreen({ navigation, route }) {
+export default function ProdutosScreen({ navigation, route }) {
   const initialCategory                     = route.params?.category ?? 'Todos';
   const [activeCategory, setActiveCategory] = useState(initialCategory);
-  const { courses }                         = useCourses(activeCategory);
+  const { produtos, reload }                = useProdutos(activeCategory);
   const { categories }                      = useCategories();
 
-  function handleCoursePress(course) {
-    navigation.navigate('CourseDetail', { course });
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload])
+  );
+
+  function handleProdutoPress(produto) {
+    navigation.navigate('ProdutoDetail', { produto });
   }
 
   function handleGoBack() {
@@ -28,7 +35,7 @@ export default function CoursesScreen({ navigation, route }) {
         <TouchableOpacity style={g.backButton} onPress={handleGoBack}>
           <Text style={g.backText}>← VOLTAR</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>CURSOS</Text>
+        <Text style={styles.title}>PRODUTOS</Text>
       </View>
 
       <CategoryFilterBar
@@ -38,22 +45,22 @@ export default function CoursesScreen({ navigation, route }) {
       />
 
       <FlatList
-        data={courses}
+        data={produtos}
         keyExtractor={(item) => item.id}
         numColumns={2}
         contentContainerStyle={styles.grid}
         columnWrapperStyle={styles.row}
         renderItem={({ item }) => (
           <View style={styles.cardWrap}>
-            <CourseCard
-              course={item}
-              onPress={() => handleCoursePress(item)}
+            <ProdutoCard
+              produto={item}
+              onPress={() => handleProdutoPress(item)}
               style={styles.cardGrid}
             />
           </View>
         )}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>Nenhum curso encontrado.</Text>
+          <Text style={styles.emptyText}>Nenhum produto encontrado.</Text>
         }
       />
     </SafeAreaView>

@@ -18,13 +18,15 @@ import storage from '../storage/asyncStorageHelper';
 import httpClient from './httpClient';
 import { USE_MOCK, API_URL } from './config';
 import { MOCK_USER } from '../data/user';
+import { isAdminEmail } from '../data/admin';
 
 async function getUser() {
   if (USE_MOCK) {
     const savedUser   = await storage.load(storage.KEYS.USER);
     const savedAvatar = await storage.load(storage.KEYS.AVATAR);
     const user        = savedUser ?? MOCK_USER;
-    return { ...user, avatar: savedAvatar ?? user.avatar };
+    const role        = isAdminEmail(user.email) ? 'admin' : 'cliente';
+    return { ...user, avatar: savedAvatar ?? user.avatar, role };
   }
 
   // INTEGRAÇÃO: GET /api/auth/me — Header: Authorization: Bearer <token>
@@ -67,7 +69,8 @@ async function updateAvatar(uri) {
 
 async function login(email, senha) {
   if (USE_MOCK) {
-    const user = { ...MOCK_USER, email };
+    const role = isAdminEmail(email) ? 'admin' : 'cliente';
+    const user = { ...MOCK_USER, email, role };
     await storage.save(storage.KEYS.USER,  user);
     await storage.save(storage.KEYS.TOKEN, 'mock-token-123');
     return user;
@@ -92,7 +95,8 @@ async function login(email, senha) {
 
 async function register(nome, email, senha) {
   if (USE_MOCK) {
-    const user = { id: '1', nome, email, avatar: null };
+    const role = isAdminEmail(email) ? 'admin' : 'cliente';
+    const user = { id: '1', nome, email, avatar: null, role };
     await storage.save(storage.KEYS.USER,  user);
     await storage.save(storage.KEYS.TOKEN, 'mock-token-123');
     return user;
