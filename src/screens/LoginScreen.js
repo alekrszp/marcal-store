@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Input from '../components/Input';
 import Button from '../components/Button';
@@ -7,6 +7,7 @@ import AuthCard from '../components/AuthCard';
 import g from '../theme/globalStyles';
 import { colors, spacing, typography } from '../theme';
 import { useUserContext } from '../context/UserContext';
+import userService from '../services/userService';
 
 export default function LoginScreen({ navigation }) {
   const { login }                   = useUserContext();
@@ -33,6 +34,20 @@ export default function LoginScreen({ navigation }) {
       setErrors({ geral: err.message || 'E-mail ou senha incorretos.' });
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleForgotPassword() {
+    if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) {
+      Alert.alert('E-mail necessário', 'Informe seu e-mail no campo acima para recuperar a senha.');
+      return;
+    }
+
+    try {
+      await userService.requestPasswordReset(email);
+      Alert.alert('Verifique seu e-mail', 'Se o e-mail estiver cadastrado, enviaremos instruções para redefinir sua senha.');
+    } catch (err) {
+      Alert.alert('Erro', err.message || 'Não foi possível enviar a solicitação. Tente novamente.');
     }
   }
 
@@ -68,7 +83,7 @@ export default function LoginScreen({ navigation }) {
 
             {errors.geral ? <Text style={styles.errorGeral}>{errors.geral}</Text> : null}
 
-            <TouchableOpacity style={styles.forgot}>
+            <TouchableOpacity style={styles.forgot} onPress={handleForgotPassword}>
               <Text style={styles.forgotText}>ESQUECI MINHA SENHA</Text>
             </TouchableOpacity>
 

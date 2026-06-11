@@ -12,6 +12,10 @@ export function UserProvider({ children }) {
     loadUser();
   }, []);
 
+  // Restaura a sessão ao abrir o app (se houver token salvo).
+  // INTEGRAÇÃO: se o backend retornar 401 (token expirado/inválido), o httpClient
+  // já limpa o storage e lança erro — aqui apenas garantimos que o estado
+  // do app reflita "deslogado" nesse caso.
   async function loadUser() {
     try {
       const token = await storage.load(storage.KEYS.TOKEN);
@@ -20,6 +24,7 @@ export function UserProvider({ children }) {
       setUser(data);
     } catch (err) {
       await storage.clearAll();
+      setUser(null);
     } finally {
       setIsLoading(false);
     }

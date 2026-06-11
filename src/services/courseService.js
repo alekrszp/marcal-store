@@ -1,5 +1,5 @@
-import storage from '../storage/asyncStorageHelper';
-import { USE_MOCK, API_URL } from './config';
+import httpClient from './httpClient';
+import { USE_MOCK } from './config';
 import { COURSES, CATEGORIES } from '../data/courses';
 
 async function getCourses(category = null) {
@@ -9,35 +9,19 @@ async function getCourses(category = null) {
   }
 
   // INTEGRAÇÃO: GET /api/courses?category=<category>
-  // Header: Authorization: Bearer <token>
-  // Resposta: Array<{ id, title, mentor, price, tag?, category, image }>
-  const token = await storage.load(storage.KEYS.TOKEN);
-  if (!token) throw new Error('Usuário não autenticado');
-
-  const query    = category && category !== 'Todos' ? `?category=${category}` : '';
-  const response = await fetch(`${API_URL}/api/courses${query}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-  return await response.json();
+  // Header: Authorization: Bearer <token> (adicionado automaticamente pelo httpClient)
+  // Resposta esperada: Array<{ id, title, mentor, price, tag?, category, image, descricao?, cargaHoraria?, modulos? }>
+  const query = category && category !== 'Todos' ? `?category=${category}` : '';
+  return await httpClient.request(`/api/courses${query}`);
 }
 
 async function getCategories() {
   if (USE_MOCK) return CATEGORIES;
 
   // INTEGRAÇÃO: GET /api/categories
-  // Header: Authorization: Bearer <token>
-  // Resposta: Array<string>
-  const token = await storage.load(storage.KEYS.TOKEN);
-  if (!token) throw new Error('Usuário não autenticado');
-
-  const response = await fetch(`${API_URL}/api/categories`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-  return await response.json();
+  // Header: Authorization: Bearer <token> (adicionado automaticamente pelo httpClient)
+  // Resposta esperada: Array<string>
+  return await httpClient.request('/api/categories');
 }
 
 export default { getCourses, getCategories };
