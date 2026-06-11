@@ -11,9 +11,10 @@
 //    todos seguindo o modelo Produto:
 //    { id, title, mentor, price, tag?, category, image, descricao?, cargaHoraria?, modulos?, video? }
 //
-// VÍDEO: "video" é a URL de um vídeo (mp4) do curso, cadastrada pelo admin
-// como um link (não há upload de arquivo de vídeo). Produtos com "video"
-// aparecem na "Área de Cursos" (CursosScreen).
+// VÍDEO: "video" é a URL da AULA do curso (conteúdo pago), cadastrada pelo
+// admin como um link (não há upload de arquivo de vídeo). Produtos com
+// "video" aparecem em "Meus Cursos" (MeusCursosScreen) somente para clientes
+// que já compraram o produto (ver useMeusCursos.js).
 //
 // IMAGEM: no admin, "image" é escolhida da galeria do dispositivo (URI local,
 // ex: file://...). Em modo mock essa URI é salva diretamente. Com API real,

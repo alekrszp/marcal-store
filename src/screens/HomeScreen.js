@@ -56,7 +56,7 @@ export default function HomeScreen({ navigation }) {
   }
 
   function handleCursosPress() {
-    navigation.navigate('Cursos');
+    navigation.navigate('MeusCursos');
   }
 
   return (
@@ -75,8 +75,8 @@ export default function HomeScreen({ navigation }) {
 
         <PromoVideoButton onPress={handleVideoPress} />
         <PromoVideoButton
-          title="ÁREA DE CURSOS"
-          subtitle="Assista aos vídeos de apresentação dos cursos"
+          title="MEUS CURSOS"
+          subtitle="Assista às aulas dos cursos que você comprou"
           onPress={handleCursosPress}
         />
 

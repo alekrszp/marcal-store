@@ -5,11 +5,10 @@ import { useFocusEffect } from '@react-navigation/native';
 import CursoVideoCard from '../components/CursoVideoCard';
 import g from '../theme/globalStyles';
 import { spacing, typography, colors } from '../theme';
-import useProdutos from '../hooks/useProdutos';
+import useMeusCursos from '../hooks/useMeusCursos';
 
-export default function CursosScreen({ navigation }) {
-  const { produtos, reload } = useProdutos('Todos');
-  const cursosComVideo       = produtos.filter(p => p.video);
+export default function MeusCursosScreen({ navigation }) {
+  const { cursos, isLoading, hasError, reload } = useMeusCursos();
 
   useFocusEffect(
     useCallback(() => {
@@ -31,19 +30,23 @@ export default function CursosScreen({ navigation }) {
         <TouchableOpacity style={g.backButton} onPress={handleGoBack}>
           <Text style={g.backText}>← VOLTAR</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>ÁREA DE CURSOS</Text>
-        <Text style={styles.subtitle}>Assista aos vídeos de apresentação dos cursos</Text>
+        <Text style={styles.title}>MEUS CURSOS</Text>
+        <Text style={styles.subtitle}>Assista às aulas dos cursos que você comprou</Text>
       </View>
 
       <FlatList
-        data={cursosComVideo}
+        data={cursos}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <CursoVideoCard produto={item} onPress={() => handlePress(item)} />
         )}
         ListEmptyComponent={
-          <Text style={styles.empty}>Nenhum curso com vídeo disponível no momento.</Text>
+          !isLoading ? <Text style={styles.empty}>
+            {hasError
+              ? 'Erro ao carregar seus cursos.'
+              : 'Você ainda não comprou nenhum curso com aulas em vídeo.'}
+          </Text> : null
         }
       />
     </SafeAreaView>

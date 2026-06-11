@@ -15,10 +15,6 @@ export default function ProdutoDetailScreen({ navigation, route }) {
     navigation.goBack();
   }
 
-  function handleAssistirVideo() {
-    navigation.navigate('VideoPlayer', { video: produto.video, title: produto.title });
-  }
-
   async function handleAdicionarAoCarrinho() {
     await addItem(produto);
     Alert.alert(
@@ -57,12 +53,6 @@ export default function ProdutoDetailScreen({ navigation, route }) {
             <View style={styles.badge}>
               <Text style={styles.badgeText}>⏱ {produto.cargaHoraria} de conteúdo</Text>
             </View>
-          ) : null}
-
-          {produto.video ? (
-            <TouchableOpacity style={styles.videoButton} onPress={handleAssistirVideo} activeOpacity={0.85}>
-              <Text style={styles.videoButtonText}>▶ ASSISTIR VÍDEO DO CURSO</Text>
-            </TouchableOpacity>
           ) : null}
 
           <View style={styles.divider} />
@@ -119,8 +109,6 @@ const styles = StyleSheet.create({
   mentor:         { ...typography.subtitle, color: colors.textSecondary, marginBottom: spacing.md },
   badge:          { alignSelf: 'flex-start', backgroundColor: colors.surfaceAlt, borderRadius: radius.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderWidth: 1, borderColor: colors.border },
   badgeText:      { ...typography.caption, color: colors.textSecondary },
-  videoButton:    { marginTop: spacing.lg, height: 52, borderRadius: radius.md, borderWidth: 1, borderColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
-  videoButtonText:{ ...typography.button, color: colors.primary },
   divider:        { height: 1, backgroundColor: colors.border, marginVertical: spacing.lg },
   sectionTitle:   { ...typography.micro, color: colors.textSecondary, marginBottom: spacing.md },
   descricao:      { ...typography.body, color: colors.textPrimary },

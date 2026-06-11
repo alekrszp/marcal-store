@@ -3,9 +3,10 @@
 // Endpoint esperado: GET /api/categories → Array<string>
 // Modelo Produto: { id, title, mentor, price, tag?, category, image, descricao?, cargaHoraria?, modulos?, video? }
 //
-// "video" (opcional): URL de um vídeo (mp4) sobre o curso. Quando presente,
-// o produto aparece na "Área de Cursos" (CursosScreen) e ganha um botão
-// "ASSISTIR VÍDEO" na tela de detalhe.
+// "video" (opcional): URL/arquivo do vídeo da AULA do curso (conteúdo pago,
+// não é vídeo de divulgação). Quando presente, e o cliente já comprou o
+// produto (aparece em algum pedido do histórico), o curso passa a aparecer
+// em "Meus Cursos" (MeusCursosScreen), de onde a aula pode ser assistida.
 //
 // Esta lista também serve como "seed" inicial dos produtos persistidos
 // localmente (ver produtoService.js) — o admin pode editar/excluir/criar
