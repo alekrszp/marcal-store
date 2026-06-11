@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryChip from '../components/CategoryChip';
 import Button from '../components/Button';
@@ -7,6 +7,7 @@ import g from '../theme/globalStyles';
 import { colors, spacing, typography } from '../theme';
 import { formatCurrency } from '../utils/formatters';
 import { useCartContext } from '../context/CartContext';
+import orderService from '../services/orderService';
 
 const PAYMENT_METHODS = ['Pix', 'Cartão de Crédito', 'Boleto'];
 
@@ -26,9 +27,9 @@ export default function CheckoutScreen({ navigation }) {
     }
 
     setError(null);
+    const order = await orderService.createOrder({ items, paymentMethod: selectedPayment, total });
     await clearCart();
-    Alert.alert('Compra confirmada!', 'Seu pedido foi realizado com sucesso.');
-    navigation.navigate('Home');
+    navigation.replace('Receipt', { order });
   }
 
   return (

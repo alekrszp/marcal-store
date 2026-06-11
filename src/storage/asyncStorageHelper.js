@@ -16,6 +16,7 @@ const KEYS = {
   AVATAR:        '@marcalstore:avatar',
   PRODUTOS:      '@marcalstore:produtos',
   CART:          '@marcalstore:cart',
+  ORDERS:        '@marcalstore:orders',
 };
 
 async function save(key, value) {
