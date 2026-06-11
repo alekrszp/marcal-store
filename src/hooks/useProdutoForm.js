@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 const EMPTY_FORM = {
   title: '', mentor: '', price: '', tag: '', category: '',
-  image: '', descricao: '', cargaHoraria: '', modulos: [],
+  image: '', descricao: '', cargaHoraria: '', modulos: [], video: '',
 };
 
 function produtoToForm(produto) {
@@ -16,6 +16,7 @@ function produtoToForm(produto) {
     descricao:    produto.descricao ?? '',
     cargaHoraria: produto.cargaHoraria ?? '',
     modulos:      produto.modulos ?? [],
+    video:        produto.video ?? '',
   };
 }
 
@@ -54,6 +55,7 @@ export default function useProdutoForm(produto) {
       descricao:    form.descricao.trim() || undefined,
       cargaHoraria: form.cargaHoraria.trim() || undefined,
       modulos:      form.modulos.length ? form.modulos : undefined,
+      video:        form.video.trim() || undefined,
     };
   }
 

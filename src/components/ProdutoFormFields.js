@@ -70,6 +70,15 @@ export default function ProdutoFormFields({ form, errors, setField, setModulos, 
       />
 
       <ModulosEditor modulos={form.modulos} onChange={setModulos} />
+
+      <Input
+        label="URL do vídeo (opcional)"
+        value={form.video}
+        onChangeText={setField('video')}
+        placeholder="https://.../video.mp4"
+        autoCapitalize="none"
+        keyboardType="url"
+      />
     </View>
   );
 }

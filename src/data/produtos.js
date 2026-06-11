@@ -1,7 +1,11 @@
 // INTEGRAÇÃO: substituir este arquivo por chamadas reais à API
 // Endpoint esperado: GET /api/produtos → Array<Produto>
 // Endpoint esperado: GET /api/categories → Array<string>
-// Modelo Produto: { id, title, mentor, price, tag?, category, image, descricao?, cargaHoraria?, modulos? }
+// Modelo Produto: { id, title, mentor, price, tag?, category, image, descricao?, cargaHoraria?, modulos?, video? }
+//
+// "video" (opcional): URL de um vídeo (mp4) sobre o curso. Quando presente,
+// o produto aparece na "Área de Cursos" (CursosScreen) e ganha um botão
+// "ASSISTIR VÍDEO" na tela de detalhe.
 //
 // Esta lista também serve como "seed" inicial dos produtos persistidos
 // localmente (ver produtoService.js) — o admin pode editar/excluir/criar
@@ -16,6 +20,7 @@ export const PRODUTOS = [
     descricao: 'Desbloqueie o potencial da sua mente para atrair riqueza, abundância e sucesso. Uma jornada de transformação real com Pablo Marçal.',
     cargaHoraria: '32h',
     modulos: ['Fundamentos da Mentalidade Rica', 'Quebrando Crenças Limitantes', 'Hábitos de Milionários', 'Visão e Propósito', 'Ação Massiva'],
+    video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
   },
   {
     id: '2', title: 'Gestão de Elite', mentor: 'Alessandro', price: 697, category: 'Negócios',
@@ -44,6 +49,7 @@ export const PRODUTOS = [
     descricao: 'Reprograme sua mente para a vitória. Disciplina, foco e resiliência como ferramentas diárias para alcançar resultados extraordinários.',
     cargaHoraria: '18h',
     modulos: ['Disciplina como Estilo de Vida', 'Foco e Produtividade', 'Resiliência Mental', 'Rotina de Campeão', 'Mentalidade Anti-Frágil'],
+    video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
   },
   {
     id: '6', title: 'Finanças do Zero', mentor: 'Alessandro', price: 397, tag: 'NOVO', category: 'Negócios',

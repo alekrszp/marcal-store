@@ -17,6 +17,8 @@ import CartScreen           from '../screens/CartScreen';
 import CheckoutScreen       from '../screens/CheckoutScreen';
 import ReceiptScreen        from '../screens/ReceiptScreen';
 import OrderHistoryScreen   from '../screens/OrderHistoryScreen';
+import CursosScreen         from '../screens/CursosScreen';
+import VideoPlayerScreen    from '../screens/VideoPlayerScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -43,6 +45,8 @@ function AppStack() {
       <Stack.Screen name="Checkout"        component={CheckoutScreen}        />
       <Stack.Screen name="Receipt"         component={ReceiptScreen}         />
       <Stack.Screen name="OrderHistory"    component={OrderHistoryScreen}    />
+      <Stack.Screen name="Cursos"          component={CursosScreen}          />
+      <Stack.Screen name="VideoPlayer"     component={VideoPlayerScreen}     />
     </Stack.Navigator>
   );
 }

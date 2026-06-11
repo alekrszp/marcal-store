@@ -10,6 +10,8 @@ import SectionHeader from '../components/SectionHeader';
 import ProdutoRow from '../components/ProdutoRow';
 import ProfileButton from '../components/ProfileButton';
 import CartButton from '../components/CartButton';
+import PromoVideoButton from '../components/PromoVideoButton';
+import { PROMO_VIDEO } from '../data/promo';
 import { colors, spacing } from '../theme';
 import { useUserContext } from '../context/UserContext';
 import { useCartContext } from '../context/CartContext';
@@ -49,6 +51,14 @@ export default function HomeScreen({ navigation }) {
     navigation.navigate('Cart');
   }
 
+  function handleVideoPress() {
+    navigation.navigate('VideoPlayer', { video: PROMO_VIDEO.video, title: PROMO_VIDEO.title });
+  }
+
+  function handleCursosPress() {
+    navigation.navigate('Cursos');
+  }
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -62,6 +72,13 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         <HeroBanner />
+
+        <PromoVideoButton onPress={handleVideoPress} />
+        <PromoVideoButton
+          title="ÁREA DE CURSOS"
+          subtitle="Assista aos vídeos de apresentação dos cursos"
+          onPress={handleCursosPress}
+        />
 
         <CategoryFilterBar
           categories={categories}

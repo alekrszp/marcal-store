@@ -9,7 +9,11 @@
 // 1. Trocar USE_MOCK para false em src/services/config.js
 // 2. Garantir que o backend implemente os endpoints comentados abaixo,
 //    todos seguindo o modelo Produto:
-//    { id, title, mentor, price, tag?, category, image, descricao?, cargaHoraria?, modulos? }
+//    { id, title, mentor, price, tag?, category, image, descricao?, cargaHoraria?, modulos?, video? }
+//
+// VÍDEO: "video" é a URL de um vídeo (mp4) do curso, cadastrada pelo admin
+// como um link (não há upload de arquivo de vídeo). Produtos com "video"
+// aparecem na "Área de Cursos" (CursosScreen).
 //
 // IMAGEM: no admin, "image" é escolhida da galeria do dispositivo (URI local,
 // ex: file://...). Em modo mock essa URI é salva diretamente. Com API real,
