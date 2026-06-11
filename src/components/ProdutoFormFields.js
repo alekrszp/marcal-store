@@ -2,10 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Input from './Input';
 import CategoryFilterBar from './CategoryFilterBar';
+import ProdutoImagePicker from './ProdutoImagePicker';
 import ModulosEditor from './ModulosEditor';
 import { colors, spacing, typography } from '../theme';
 
-export default function ProdutoFormFields({ form, errors, setField, setModulos, categories }) {
+export default function ProdutoFormFields({ form, errors, setField, setModulos, categories, onPickImage }) {
   return (
     <View>
       <Input
@@ -48,12 +49,9 @@ export default function ProdutoFormFields({ form, errors, setField, setModulos, 
       />
       {errors.category ? <Text style={styles.errorText}>{errors.category}</Text> : null}
 
-      <Input
-        label="URL da imagem"
-        value={form.image}
-        onChangeText={setField('image')}
-        placeholder="https://..."
-        autoCapitalize="none"
+      <ProdutoImagePicker
+        image={form.image}
+        onPress={onPickImage}
         error={errors.image}
       />
       <Input

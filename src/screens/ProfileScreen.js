@@ -1,38 +1,28 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
 import AvatarPicker from '../components/AvatarPicker';
 import InfoRow from '../components/InfoRow';
 import Button from '../components/Button';
 import g from '../theme/globalStyles';
 import { colors, spacing, radius, typography } from '../theme';
 import { useUserContext } from '../context/UserContext';
+import useImagePicker from '../hooks/useImagePicker';
 
 export default function ProfileScreen({ navigation }) {
   const { user, updateAvatar, logout } = useUserContext();
+  const { pickImage }                  = useImagePicker();
 
   const initials = user?.nome
     ? user.nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
     : '?';
 
   async function handlePickImage() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Permissão necessária', 'Permita o acesso à galeria para trocar a foto.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes:    ['images'],
-    allowsEditing: true,
-    aspect:        [1, 1],
-    quality:       0.8,
+    const uri = await pickImage({
+      aspect:            [1, 1],
+      permissionMessage: 'Permita o acesso à galeria para trocar a foto.',
     });
-
-    if (!result.canceled) {
-      await updateAvatar(result.assets[0].uri);
-    }
+    if (uri) await updateAvatar(uri);
   }
 
   function handleLogout() {

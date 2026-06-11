@@ -7,6 +7,7 @@ import g from '../theme/globalStyles';
 import { colors, spacing, typography } from '../theme';
 import useProdutoForm from '../hooks/useProdutoForm';
 import useCategories from '../hooks/useCategories';
+import useImagePicker from '../hooks/useImagePicker';
 import produtoService from '../services/produtoService';
 
 export default function AdminProdutoFormScreen({ navigation, route }) {
@@ -14,12 +15,21 @@ export default function AdminProdutoFormScreen({ navigation, route }) {
   const isEdicao                          = !!produto;
   const { form, errors, setField, setModulos, validate, toProdutoData } = useProdutoForm(produto);
   const { categories }                    = useCategories();
+  const { pickImage }                     = useImagePicker();
   const [isSaving, setIsSaving]           = useState(false);
 
   const categoriasSelecionaveis = categories.filter(c => c !== 'Todos');
 
   function handleGoBack() {
     navigation.goBack();
+  }
+
+  async function handlePickImage() {
+    const uri = await pickImage({
+      aspect:            [16, 9],
+      permissionMessage: 'Permita o acesso à galeria para escolher uma imagem.',
+    });
+    if (uri) setField('image')(uri);
   }
 
   async function handleSalvar() {
@@ -58,6 +68,7 @@ export default function AdminProdutoFormScreen({ navigation, route }) {
             setField={setField}
             setModulos={setModulos}
             categories={categoriasSelecionaveis}
+            onPickImage={handlePickImage}
           />
 
           <Button

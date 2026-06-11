@@ -10,6 +10,13 @@
 // 2. Garantir que o backend implemente os endpoints comentados abaixo,
 //    todos seguindo o modelo Produto:
 //    { id, title, mentor, price, tag?, category, image, descricao?, cargaHoraria?, modulos? }
+//
+// IMAGEM: no admin, "image" é escolhida da galeria do dispositivo (URI local,
+// ex: file://...). Em modo mock essa URI é salva diretamente. Com API real,
+// o upload deve ser feito via multipart/form-data (igual a
+// userService.updateAvatar) — createProduto/updateProduto devem enviar a
+// imagem em uma requisição separada e usar a URL retornada pelo backend
+// no campo "image".
 
 import storage from '../storage/asyncStorageHelper';
 import httpClient from './httpClient';
