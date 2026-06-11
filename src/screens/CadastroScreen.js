@@ -102,7 +102,7 @@ export default function CadastroScreen({ navigation }) {
               title="CRIAR CONTA"
               onPress={handleCadastro}
               loading={isLoading}
-              style={{ marginTop: spacing.md }}
+              style={styles.submitButton}
             />
           </AuthCard>
 
@@ -118,8 +118,9 @@ export default function CadastroScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  flex:       { flex: 1 },
-  scroll:     { flexGrow: 1, padding: spacing.lg, justifyContent: 'center' },
+  flex:          { flex: 1 },
+  scroll:        { flexGrow: 1, padding: spacing.lg, justifyContent: 'center' },
+  submitButton:  { marginTop: spacing.md },
   terms:      { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, gap: spacing.sm },
   checkbox:   { width: 20, height: 20, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.borderLight, alignItems: 'center', justifyContent: 'center' },
   checkboxOn: { backgroundColor: colors.primary, borderColor: colors.primary },

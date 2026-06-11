@@ -24,7 +24,9 @@ export default function ProdutoCard({ produto, onPress, style }) {
         <Text style={styles.title} numberOfLines={1}>{produto.title}</Text>
         <Text style={styles.mentor} numberOfLines={1}>{produto.mentor}</Text>
         <View style={styles.footer}>
-          <Text style={styles.price}>{formatCurrency(produto.price)}</Text>
+          <Text style={styles.price} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+            {formatCurrency(produto.price)}
+          </Text>
           <TouchableOpacity style={styles.btn} onPress={onPress}>
             <Text style={styles.btnText}>VER</Text>
           </TouchableOpacity>
@@ -44,8 +46,8 @@ const styles = StyleSheet.create({
   body:           { padding: spacing.md },
   title:          { ...typography.bodyBold, color: colors.textPrimary },
   mentor:         { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xs },
-  footer:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.md },
-  price:          { ...typography.bodyBold, color: colors.primary },
-  btn:            { backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.sm - 2, borderRadius: radius.sm },
+  footer:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.md, gap: spacing.xs },
+  price:          { ...typography.bodyBold, color: colors.primary, flexShrink: 1 },
+  btn:            { flexShrink: 0, backgroundColor: colors.primary, paddingHorizontal: spacing.md, paddingVertical: spacing.sm - 2, borderRadius: radius.sm },
   btnText:        { ...typography.nano, color: colors.primaryText },
 });

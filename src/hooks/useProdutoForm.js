@@ -36,6 +36,7 @@ export default function useProdutoForm(produto) {
     if (!form.title.trim())                                   newErrors.title    = 'Informe o título do produto';
     if (!form.mentor.trim())                                   newErrors.mentor   = 'Informe o autor/mentor';
     if (!form.price.trim() || Number(form.price) <= 0)         newErrors.price    = 'Informe um preço válido';
+    else if (Number(form.price) > 99999.99)                    newErrors.price    = 'Preço máximo: R$ 99.999,99';
     if (!form.category.trim())                                 newErrors.category = 'Selecione uma categoria';
     if (!form.image.trim())                                    newErrors.image    = 'Informe a URL da imagem';
     setErrors(newErrors);

@@ -64,9 +64,11 @@ export default function ProdutoDetailScreen({ navigation, route }) {
           ) : null}
 
           <View style={styles.buySection}>
-            <View>
+            <View style={styles.priceBlock}>
               <Text style={styles.priceLabel}>INVESTIMENTO</Text>
-              <Text style={styles.price}>{formatCurrency(produto.price)}</Text>
+              <Text style={styles.price} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
+                {formatCurrency(produto.price)}
+              </Text>
             </View>
             <TouchableOpacity style={styles.buyButton}>
               <Text style={styles.buyButtonText}>QUERO ESTE CURSO</Text>
@@ -98,8 +100,9 @@ const styles = StyleSheet.create({
   descricao:      { ...typography.body, color: colors.textPrimary },
   modulosList:    { gap: spacing.sm },
   buySection:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
+  priceBlock:     { flexShrink: 1 },
   priceLabel:     { ...typography.micro, color: colors.textSecondary, marginBottom: spacing.xs },
   price:          { ...typography.h4, color: colors.primary },
-  buyButton:      { flex: 1, backgroundColor: colors.primary, paddingVertical: spacing.md, borderRadius: radius.md, alignItems: 'center' },
+  buyButton:      { flexShrink: 0, backgroundColor: colors.primary, paddingVertical: spacing.md, paddingHorizontal: spacing.lg, borderRadius: radius.md, alignItems: 'center' },
   buyButtonText:  { ...typography.button, color: colors.primaryText },
 });

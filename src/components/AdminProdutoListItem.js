@@ -11,7 +11,9 @@ export default function AdminProdutoListItem({ produto, onEdit, onDelete }) {
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={1}>{produto.title}</Text>
         <Text style={styles.category} numberOfLines={1}>{produto.category}</Text>
-        <Text style={styles.price}>{formatCurrency(produto.price)}</Text>
+        <Text style={styles.price} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+          {formatCurrency(produto.price)}
+        </Text>
       </View>
 
       <View style={styles.actions}>

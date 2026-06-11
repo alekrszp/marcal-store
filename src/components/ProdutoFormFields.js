@@ -29,8 +29,9 @@ export default function ProdutoFormFields({ form, errors, setField, setModulos, 
         label="Preço (R$)"
         value={form.price}
         onChangeText={setField('price')}
-        placeholder="0.00"
+        placeholder="Ex: 497.00"
         keyboardType="decimal-pad"
+        maxLength={8}
         error={errors.price}
       />
       <Input

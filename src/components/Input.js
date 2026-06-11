@@ -5,7 +5,7 @@ import { colors, radius, spacing, typography } from '../theme';
 export default function Input({
   label, value, onChangeText, placeholder,
   secureTextEntry = false, keyboardType = 'default',
-  autoCapitalize = 'none', error,
+  autoCapitalize = 'none', error, maxLength,
 }) {
   const [isFocused, setIsFocused] = useState(false);
   const [isHidden,  setIsHidden]  = useState(secureTextEntry);
@@ -27,6 +27,7 @@ export default function Input({
           secureTextEntry={isHidden}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
+          maxLength={maxLength}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
