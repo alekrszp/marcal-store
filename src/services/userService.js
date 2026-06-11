@@ -134,6 +134,9 @@ async function requestPasswordReset(email) {
 }
 
 async function logout() {
+  // INTEGRAÇÃO: opcionalmente, chamar POST /api/auth/logout antes de limpar o
+  // storage local, para que o backend invalide o refreshToken salvo.
+  // Ex: if (!USE_MOCK) await httpClient.request('/api/auth/logout', { method: 'POST' });
   await storage.clearAll();
 }
 
