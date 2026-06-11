@@ -118,8 +118,13 @@ CREATE TABLE users (
   descricao?:    string,
   cargaHoraria?: string,        // ex: '32h'
   modulos?:      string[],
+  video?:        string,        // URL do arquivo de vídeo da aula (.mp4/.m3u8)
 }
 ```
+
+> `video` é opcional e representa a **aula do curso** (conteúdo pago), não um
+> vídeo de divulgação. Cadastrado pelo admin como link direto para o arquivo
+> (ver Passo 5 — Meus Cursos).
 
 ### Endpoints a implementar
 
@@ -162,6 +167,7 @@ CREATE TABLE produtos (
   descricao      TEXT,
   carga_horaria  VARCHAR(20),
   modulos        JSONB,           -- array de strings
+  video_url      TEXT,            -- URL do vídeo da aula (.mp4/.m3u8), opcional
   created_at     TIMESTAMP DEFAULT now()
 );
 ```
@@ -270,7 +276,50 @@ CREATE TABLE pedido_itens (
 
 ---
 
-## Passo 5 — Checklist final de migração
+## Passo 5 — Meus Cursos (`src/hooks/useMeusCursos.js`)
+
+A área "Meus Cursos" mostra os produtos com `video` que o cliente já comprou,
+para que ele assista às aulas.
+
+### Como funciona hoje (mock)
+O hook `useMeusCursos` faz tudo no app:
+1. `orderService.getOrders()` → todos os pedidos do usuário
+2. `produtoService.getProdutos('Todos')` → catálogo completo
+3. Calcula o conjunto de `produto_id` comprados (a partir de `order.items`)
+4. Filtra o catálogo: produtos comprados **e** que possuem `video`
+
+### Endpoint dedicado (opcional, recomendado)
+Para evitar 2 requisições e o cruzamento no cliente, o backend pode expor:
+
+| Função          | Endpoint           | Método | Resposta |
+|------------------|--------------------|--------|------------|
+| `getMeusCursos` | `/api/my-courses`  | GET    | `Array<Produto>` (apenas produtos comprados pelo usuário autenticado, com `video` preenchido) |
+
+### Lógica recomendada do `GET /api/my-courses`
+```sql
+SELECT DISTINCT p.*
+FROM produtos p
+JOIN pedido_itens pi ON pi.produto_id = p.id
+JOIN pedidos pe       ON pe.id = pi.pedido_id
+WHERE pe.user_id = :userId
+  AND p.video_url IS NOT NULL;
+```
+
+Se esse endpoint for criado, basta trocar a implementação de
+`useMeusCursos.js` para chamar `httpClient.request('/api/my-courses')`
+diretamente, sem precisar de `getOrders` + `getProdutos`.
+
+### Reprodução do vídeo
+- Usa `expo-video` (`VideoPlayerScreen`), que só reproduz **arquivos de
+  vídeo diretos** (`.mp4`, `.m3u8`/HLS).
+- O vídeo de divulgação da Home (`PROMO_VIDEO`, em `src/data/promo.js`) é um
+  asset local (`assets/videos/`). Se quiser trocar por um vídeo vindo do
+  backend, basta substituir o `require(...)` por uma URL retornada por um
+  endpoint (ex: `GET /api/promo`).
+
+---
+
+## Passo 6 — Checklist final de migração
 
 - [ ] Backend no ar com todos os endpoints acima implementados
 - [ ] `USE_MOCK = false` e `API_URL` apontando para o servidor (HTTPS)
@@ -282,6 +331,8 @@ CREATE TABLE pedido_itens (
 - [ ] Testar **upload de imagem** (avatar e produto) via multipart
 - [ ] Testar **carrinho** persistindo entre sessões/dispositivos do mesmo usuário
 - [ ] Testar **checkout → comprovante → histórico** com recálculo de total no backend
+- [ ] Testar **Meus Cursos**: comprar um produto com `video` e confirmar que ele
+      aparece na lista e a aula reproduz corretamente
 - [ ] Remover `src/data/admin.js` (role agora vem do backend) e, opcionalmente,
       `src/data/produtos.js`/`src/data/user.js` (mantidos só como referência/seed)
 - [ ] (Opcional) Migrar `TOKEN`/`REFRESH_TOKEN` para `expo-secure-store`

@@ -19,6 +19,7 @@ comprovante de compra e histórico de pedidos.
 - **AsyncStorage** (`@react-native-async-storage/async-storage`) — persistência local
 - **react-native-svg** — ícones e logo (não há `@expo/vector-icons` no projeto)
 - **expo-image-picker** — seleção de imagens da galeria (avatar e imagens de produto)
+- **expo-video** — reprodução de vídeos (publi da Home e aulas em "Meus Cursos")
 
 ---
 
@@ -107,6 +108,24 @@ src/
 - **ReceiptScreen** — comprovante da compra (itens, pagamento, total, data)
 - **OrderHistoryScreen** — histórico de pedidos anteriores (acessível pelo
   Perfil → "HISTÓRICO DE COMPRAS"), cada item abre o comprovante novamente
+
+### Vídeos: publi da Home e Meus Cursos
+- **Botão "VÍDEO" (Home)** — abre em tela cheia (`VideoPlayerScreen`, via
+  `expo-video`) o vídeo de divulgação gerado por IA com o Pablo Marçal
+  (`src/data/promo.js`, asset local em `assets/videos/`)
+- **Botão "MEUS CURSOS" (Home)** → `MeusCursosScreen` — lista, com
+  `CursoVideoCard`, apenas os produtos que o cliente **já comprou** e que
+  possuem `video` cadastrado (aula do curso). A lista é calculada pelo hook
+  `useMeusCursos`, que cruza `orderService.getOrders()` com
+  `produtoService.getProdutos()`
+- Tocar em um curso abre a aula em `VideoPlayerScreen`
+- **Cadastro do vídeo da aula**: no formulário do admin
+  (`AdminProdutoFormScreen` / `ProdutoFormFields`), há o campo opcional "URL
+  do vídeo" — aceita qualquer link de **arquivo de vídeo direto** (`.mp4`,
+  `.m3u8`/HLS). Links de páginas (YouTube, Drive, etc.) não são suportados
+  pelo `expo-video`
+- Por enquanto, apenas 2 produtos do seed (`src/data/produtos.js`) têm
+  `video` de exemplo: "Mente Milionária" e "Mindset Vencedor"
 
 ---
 
