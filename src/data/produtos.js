@@ -39,19 +39,19 @@ export const PRODUTOS = [
   {
     id: '1', title: 'A Arte de Vender', mentor: 'Jordan Belfort', price: 997, tag: 'TOP', category: 'Mentoria',
     image: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=400&q=80',
-    descricao: 'Baseado na cena mais icônica do mundo das vendas: a apresentação que hipnotiza qualquer sala e vende a ideia antes do produto. Aprenda a técnica por trás do carisma, da confiança inabalável e do fechamento que parece impossível de recusar.',
+    descricao: 'No dia a dia do escritório, Jordan recebe um cliente que parecia impossível de fechar — uma venda que qualquer outro vendedor deixaria escapar. Mas, na conversa, ele muda o tom, conduz a objeção e transforma um "não" quase certo em um "sim" — deixando até os colegas impressionados com a cena. Esse curso ensina exatamente essa técnica: como ler o cliente, ajustar o discurso na hora e fechar vendas que pareciam perdidas, usando a forma de falar como sua maior ferramenta.',
     cargaHoraria: '2 min',
     modulos: ['A Regra de Ouro: Venda Você Primeiro', 'Construindo Autoridade Instantânea', 'O Discurso que Hipnotiza a Sala', 'Lendo o Comprador em Segundos', 'O Fechamento Irresistível'],
     video: require('../../assets/videos/curso-arte-de-vender.mp4'),
-    videoDescricao: 'A cena que virou referência em vendas: a apresentação que hipnotiza a sala, vende a ideia antes do produto e mostra a confiança de quem domina a arte de vender.',
+    videoDescricao: 'A aula mostra Jordan no escritório fechando uma venda que parecia impossível — e impressionando até os próprios colegas com a forma como conduziu o cliente.',
   },
   {
     id: '5', title: 'Mindset Vencedor', mentor: 'Terence Fletcher', price: 497, tag: 'TOP', category: 'Mindset',
     image: 'https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=400&q=80',
-    descricao: 'A mentalidade de quem não aceita "bom o suficiente": disciplina brutal, exigência implacável com você mesmo e a busca obsessiva pela perfeição em cada detalhe — até encontrar seu limite real e ultrapassá-lo.',
+    descricao: 'Uma sequência de momentos que mostram, na prática, o que significa ter um mindset vencedor: a exigência implacável de um mentor que não aceita "bom o suficiente", a pressão que separa quem desiste de quem vai até o limite, e a obsessão pela perfeição em cada detalhe. Esse curso usa esses momentos para ensinar a mentalidade por trás da alta performance — como lidar com pressão extrema, transformar críticas em combustível e desenvolver a disciplina de quem está disposto a pagar o preço da excelência.',
     cargaHoraria: '6 min',
     modulos: ['Disciplina Brutal: Sem Desculpas', 'A Obsessão pela Perfeição', 'Pressão Como Combustível', 'Superando o Próprio Limite', 'A Mentalidade de Quem Nunca Desiste'],
     video: require('../../assets/videos/curso-mindset-vencedor.mp4'),
-    videoDescricao: 'A cena que mostra o que é exigência de verdade: o limite sendo empurrado até o ponto de quebra, e a mentalidade implacável de quem não aceita menos que a perfeição.',
+    videoDescricao: 'Uma montagem de cenas de Whiplash mostrando a exigência implacável de Terence Fletcher e a mentalidade de quem não aceita menos que a perfeição.',
   },
 ];
