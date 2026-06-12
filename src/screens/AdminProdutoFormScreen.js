@@ -15,7 +15,7 @@ export default function AdminProdutoFormScreen({ navigation, route }) {
   const isEdicao                          = !!produto;
   const { form, errors, setField, setModulos, validate, toProdutoData } = useProdutoForm(produto);
   const { categories }                    = useCategories();
-  const { pickImage }                     = useImagePicker();
+  const { pickImage, pickVideo }          = useImagePicker();
   const [isSaving, setIsSaving]           = useState(false);
 
   const categoriasSelecionaveis = categories.filter(c => c !== 'Todos');
@@ -30,6 +30,17 @@ export default function AdminProdutoFormScreen({ navigation, route }) {
       permissionMessage: 'Permita o acesso à galeria para escolher uma imagem.',
     });
     if (uri) setField('image')(uri);
+  }
+
+  async function handlePickVideo() {
+    const uri = await pickVideo({
+      permissionMessage: 'Permita o acesso à galeria para escolher um vídeo.',
+    });
+    if (uri) setField('video')(uri);
+  }
+
+  function handleRemoveVideo() {
+    setField('video')('');
   }
 
   async function handleSalvar() {
@@ -69,6 +80,8 @@ export default function AdminProdutoFormScreen({ navigation, route }) {
             setModulos={setModulos}
             categories={categoriasSelecionaveis}
             onPickImage={handlePickImage}
+            onPickVideo={handlePickVideo}
+            onRemoveVideo={handleRemoveVideo}
           />
 
           <Button

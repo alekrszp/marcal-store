@@ -23,7 +23,6 @@ export default function HomeScreen({ navigation }) {
   const { user }                            = useUserContext();
   const { itemCount }                       = useCartContext();
   const { produtos, reload: reloadProdutos }       = useProdutos(activeCategory);
-  const { produtos: mentorias, reload: reloadMentorias } = useProdutos('Mentoria');
   const { categories }                      = useCategories();
 
   const userInitial = user?.nome?.charAt(0).toUpperCase() ?? 'U';
@@ -31,8 +30,7 @@ export default function HomeScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       reloadProdutos();
-      reloadMentorias();
-    }, [reloadProdutos, reloadMentorias])
+    }, [reloadProdutos])
   );
 
   function handleProdutoPress(produto) {
@@ -91,12 +89,6 @@ export default function HomeScreen({ navigation }) {
           onVerTudo={() => handleVerTudo(activeCategory)}
         />
         <ProdutoRow produtos={produtos} onProdutoPress={handleProdutoPress} />
-
-        <SectionHeader
-          title="Mentorias"
-          onVerTudo={() => handleVerTudo('Mentoria')}
-        />
-        <ProdutoRow produtos={mentorias} onProdutoPress={handleProdutoPress} />
 
         <View style={styles.bottomSpacer} />
 

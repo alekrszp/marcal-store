@@ -80,10 +80,12 @@ src/
   `role: 'admin'` automaticamente no login/cadastro
 
 ### Catálogo de produtos
-- **Home** (`HomeScreen`) — destaque por categoria + seção de mentorias
-- **Produtos** (`ProdutosScreen`) — listagem filtrada por categoria
+- **Home** (`HomeScreen`) — seção "Em destaque" com os produtos
+- **Produtos** (`ProdutosScreen`) — listagem filtrada por categoria; o título
+  da tela mostra o nome da categoria selecionada (ou "PRODUTOS" em "Todos")
 - **Detalhe do produto** (`ProdutoDetailScreen`) — descrição, módulos, carga
-  horária, preço e botão "ADICIONAR AO CARRINHO"
+  horária, preço e botão "ADICIONAR AO CARRINHO" (ou aviso "VOCÊ JÁ TEM ESSE
+  CURSO" se o produto já estiver no histórico de pedidos)
 - Categorias e produtos persistidos via `produtoService` (seed inicial em
   `src/data/produtos.js`)
 
@@ -94,11 +96,14 @@ src/
   incluindo seletor de imagem da galeria e editor de módulos (`ModulosEditor`)
 
 ### Carrinho de compras
-- `CartContext` — estado global do carrinho (itens, quantidade, total),
-  persistido via `cartService`
+- `CartContext` — estado global do carrinho (itens, total), persistido via
+  `cartService`
+- **Cada curso só pode ser comprado 1 vez**: `addItem` não permite duplicar
+  um produto já no carrinho, e `ProdutoDetailScreen` mostra "VOCÊ JÁ TEM ESSE
+  CURSO" (sem opção de compra) se ele já estiver no histórico de pedidos
 - Ícone de carrinho com badge na Home (`CartButton`)
-- **CartScreen** — lista de itens (`CartItemRow`) com controles de
-  quantidade, remoção e total
+- **CartScreen** — lista de itens (`CartItemRow`) com remoção e total (sem
+  seleção de quantidade)
 
 ### Checkout, comprovante e histórico
 - **CheckoutScreen** — resumo do pedido + seleção de forma de pagamento
@@ -120,10 +125,12 @@ src/
   `produtoService.getProdutos()`
 - Tocar em um curso abre a aula em `VideoPlayerScreen`
 - **Cadastro do vídeo da aula**: no formulário do admin
-  (`AdminProdutoFormScreen` / `ProdutoFormFields`), há o campo opcional "URL
-  do vídeo" — aceita qualquer link de **arquivo de vídeo direto** (`.mp4`,
-  `.m3u8`/HLS). Links de páginas (YouTube, Drive, etc.) não são suportados
-  pelo `expo-video`
+  (`AdminProdutoFormScreen` / `ProdutoFormFields`), o campo opcional "Vídeo
+  da aula" usa `ProdutoVideoPicker` para **selecionar um vídeo da galeria do
+  dispositivo** (mesmo padrão da imagem do produto) — recomendado `.mp4`
+  (H.264), até 1080p e ~50MB. Na integração com backend, esse arquivo é
+  enviado por upload e o campo `video` passa a guardar a URL retornada
+  (`.mp4`/`.m3u8`)
 - Por enquanto, apenas 2 produtos do seed (`src/data/produtos.js`) têm
   `video` de exemplo: "A Arte de Vender" e "Mindset Vencedor"
 

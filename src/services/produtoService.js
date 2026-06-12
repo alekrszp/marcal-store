@@ -11,28 +11,47 @@
 //    todos seguindo o modelo Produto:
 //    { id, title, mentor, price, tag?, category, image, descricao?, cargaHoraria?, modulos?, video? }
 //
-// VÍDEO: "video" é a URL da AULA do curso (conteúdo pago), cadastrada pelo
-// admin como um link (não há upload de arquivo de vídeo). Produtos com
-// "video" aparecem em "Meus Cursos" (MeusCursosScreen) somente para clientes
-// que já compraram o produto (ver useMeusCursos.js).
+// VÍDEO: "video" é o arquivo da AULA do curso (conteúdo pago). No admin,
+// "video" é escolhido da galeria do dispositivo via ProdutoVideoPicker
+// (URI local, ex: file://...), igual ao fluxo de "image". Em modo mock essa
+// URI é salva diretamente. Produtos com "video" aparecem em "Meus Cursos"
+// (MeusCursosScreen) somente para clientes que já compraram o produto (ver
+// useMeusCursos.js).
 //
-// IMAGEM: no admin, "image" é escolhida da galeria do dispositivo (URI local,
-// ex: file://...). Em modo mock essa URI é salva diretamente. Com API real,
-// o upload deve ser feito via multipart/form-data (igual a
-// userService.updateAvatar) — createProduto/updateProduto devem enviar a
-// imagem em uma requisição separada e usar a URL retornada pelo backend
-// no campo "image".
+// Especificação recomendada do arquivo de vídeo:
+// - Formato: .mp4 (codec H.264) — compatível com expo-video em iOS/Android
+// - Resolução: até 1080p (1920x1080)
+// - Tamanho: recomendado até ~50MB por aula (arquivos maiores devem ser
+//   hospedados externamente e referenciados por URL, ver abaixo)
+// - Duração: sem limite técnico, mas o player não exibe transcrição/capítulos
+//
+// IMAGEM e VÍDEO: no admin, ambos são escolhidos da galeria do dispositivo
+// (URI local, ex: file://...). Em modo mock essa URI é salva diretamente.
+// Com API real, o upload deve ser feito via multipart/form-data (igual a
+// userService.updateAvatar) — createProduto/updateProduto devem enviar
+// "image" e "video" em requisições separadas (upload de arquivo) e usar as
+// URLs retornadas pelo backend nesses campos antes de enviar o restante dos
+// dados do produto. Para vídeos grandes, o backend pode optar por retornar
+// uma URL de um serviço de streaming/CDN (ex: .m3u8/HLS) — o expo-video
+// também suporta esse formato.
 
 import storage from '../storage/asyncStorageHelper';
 import httpClient from './httpClient';
 import { USE_MOCK } from './config';
-import { PRODUTOS, CATEGORIES } from '../data/produtos';
+import { PRODUTOS, CATEGORIES, PRODUTOS_SEED_VERSION } from '../data/produtos';
 
 async function loadProdutosSeeded() {
   const saved = await storage.load(storage.KEYS.PRODUTOS);
-  if (saved) return saved;
+  const savedVersion = await storage.load(storage.KEYS.PRODUTOS_SEED_VERSION);
+
+  // Se o seed em produtos.js mudou (PRODUTOS_SEED_VERSION), os produtos
+  // salvos no AsyncStorage são substituídos pelo novo seed. Isso garante que
+  // alterações feitas em produtos.js (durante o desenvolvimento) apareçam no
+  // app mesmo após a primeira execução.
+  if (saved && savedVersion === PRODUTOS_SEED_VERSION) return saved;
 
   await storage.save(storage.KEYS.PRODUTOS, PRODUTOS);
+  await storage.save(storage.KEYS.PRODUTOS_SEED_VERSION, PRODUTOS_SEED_VERSION);
   return PRODUTOS;
 }
 

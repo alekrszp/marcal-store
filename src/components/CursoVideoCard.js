@@ -16,6 +16,9 @@ export default function CursoVideoCard({ produto, onPress }) {
       <View style={styles.body}>
         <Text style={styles.title} numberOfLines={1}>{produto.title}</Text>
         <Text style={styles.mentor} numberOfLines={1}>por {produto.mentor}</Text>
+        {produto.videoDescricao ? (
+          <Text style={styles.videoDescricao} numberOfLines={2}>{produto.videoDescricao}</Text>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -30,4 +33,5 @@ const styles = StyleSheet.create({
   body:           { padding: spacing.md },
   title:          { ...typography.bodyBold, color: colors.textPrimary },
   mentor:         { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xs },
+  videoDescricao: { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xs },
 });

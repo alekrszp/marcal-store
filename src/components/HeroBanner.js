@@ -22,7 +22,7 @@ export default function HeroBanner() {
         Mentorias e cursos de quem já chegou ao topo.
       </Text>
       <View style={styles.statsRow}>
-        <StatItem value="120+" label="Mentores" />
+        <StatItem value="VIP"  label="Acesso"   />
         <View style={styles.divider} />
         <StatItem value="50k+" label="Alunos"   />
         <View style={styles.divider} />

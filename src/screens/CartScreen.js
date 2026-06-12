@@ -9,7 +9,7 @@ import { formatCurrency } from '../utils/formatters';
 import { useCartContext } from '../context/CartContext';
 
 export default function CartScreen({ navigation }) {
-  const { items, total, removeItem, updateQuantity } = useCartContext();
+  const { items, total, removeItem } = useCartContext();
 
   function handleGoBack() {
     navigation.goBack();
@@ -35,8 +35,6 @@ export default function CartScreen({ navigation }) {
         renderItem={({ item }) => (
           <CartItemRow
             item={item}
-            onIncrease={() => updateQuantity(item.id, item.quantity + 1)}
-            onDecrease={() => updateQuantity(item.id, item.quantity - 1)}
             onRemove={() => removeItem(item.id)}
           />
         )}

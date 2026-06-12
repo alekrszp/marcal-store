@@ -27,52 +27,41 @@ export function CartProvider({ children }) {
     await cartService.saveCart(updatedItems);
   }
 
+  // Cada curso só pode estar uma vez no carrinho (não é possível comprar
+  // mais de 1 unidade do mesmo curso). Retorna false se o produto já estiver
+  // no carrinho, para a tela poder avisar o usuário.
   async function addItem(produto) {
-    const existente = items.find(item => item.id === produto.id);
+    const jaExiste = items.some(item => item.id === produto.id);
+    if (jaExiste) return false;
 
-    const updatedItems = existente
-      ? items.map(item => (
-          item.id === produto.id ? { ...item, quantity: item.quantity + 1 } : item
-        ))
-      : [...items, {
-          id:       produto.id,
-          title:    produto.title,
-          mentor:   produto.mentor,
-          price:    produto.price,
-          image:    produto.image,
-          quantity: 1,
-        }];
+    const updatedItems = [...items, {
+      id:       produto.id,
+      title:    produto.title,
+      mentor:   produto.mentor,
+      price:    produto.price,
+      image:    produto.image,
+      quantity: 1,
+    }];
 
     await persist(updatedItems);
+    return true;
   }
 
   async function removeItem(id) {
     await persist(items.filter(item => item.id !== id));
   }
 
-  async function updateQuantity(id, quantity) {
-    if (quantity < 1) {
-      await removeItem(id);
-      return;
-    }
-
-    const updatedItems = items.map(item => (
-      item.id === id ? { ...item, quantity } : item
-    ));
-    await persist(updatedItems);
-  }
-
   async function clearCart() {
     await persist([]);
   }
 
-  const itemCount = items.reduce((total, item) => total + item.quantity, 0);
-  const total     = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const itemCount = items.length;
+  const total     = items.reduce((sum, item) => sum + item.price, 0);
 
   return (
     <CartContext.Provider value={{
       items, itemCount, total, isLoading,
-      addItem, removeItem, updateQuantity, clearCart,
+      addItem, removeItem, clearCart,
     }}>
       {children}
     </CartContext.Provider>

@@ -35,7 +35,9 @@ export default function ProdutosScreen({ navigation, route }) {
         <TouchableOpacity style={g.backButton} onPress={handleGoBack}>
           <Text style={g.backText}>← VOLTAR</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>PRODUTOS</Text>
+        <Text style={styles.title}>
+          {activeCategory === 'Todos' ? 'PRODUTOS' : activeCategory.toUpperCase()}
+        </Text>
       </View>
 
       <CategoryFilterBar

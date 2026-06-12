@@ -20,5 +20,20 @@ export default function useImagePicker() {
     return result.assets[0].uri;
   }
 
-  return { pickImage };
+  async function pickVideo({ permissionMessage = 'Permita o acesso à galeria para escolher um vídeo.' } = {}) {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permissão necessária', permissionMessage);
+      return null;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['videos'],
+    });
+
+    if (result.canceled) return null;
+    return result.assets[0].uri;
+  }
+
+  return { pickImage, pickVideo };
 }

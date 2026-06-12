@@ -3,10 +3,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import Input from './Input';
 import CategoryFilterBar from './CategoryFilterBar';
 import ProdutoImagePicker from './ProdutoImagePicker';
+import ProdutoVideoPicker from './ProdutoVideoPicker';
 import ModulosEditor from './ModulosEditor';
 import { colors, spacing, typography } from '../theme';
 
-export default function ProdutoFormFields({ form, errors, setField, setModulos, categories, onPickImage }) {
+export default function ProdutoFormFields({ form, errors, setField, setModulos, categories, onPickImage, onPickVideo, onRemoveVideo }) {
   return (
     <View>
       <Input
@@ -42,6 +43,12 @@ export default function ProdutoFormFields({ form, errors, setField, setModulos, 
         autoCapitalize="characters"
       />
 
+      {/* Categoria: seleção fechada entre as categorias já existentes
+          (CATEGORIES em src/data/produtos.js / GET /api/categories). Não há
+          campo livre para criar categoria nova por aqui — isso evita
+          categorias "órfãs" sem produtos e mantém o filtro da Home/Produtos
+          consistente. Para adicionar uma categoria, inclua-a em CATEGORIES
+          (mock) ou na tabela/endpoint de categorias do backend. */}
       <Text style={styles.label}>CATEGORIA</Text>
       <CategoryFilterBar
         categories={categories}
@@ -71,13 +78,10 @@ export default function ProdutoFormFields({ form, errors, setField, setModulos, 
 
       <ModulosEditor modulos={form.modulos} onChange={setModulos} />
 
-      <Input
-        label="URL do vídeo (opcional)"
-        value={form.video}
-        onChangeText={setField('video')}
-        placeholder="https://.../video.mp4"
-        autoCapitalize="none"
-        keyboardType="url"
+      <ProdutoVideoPicker
+        video={form.video}
+        onPick={onPickVideo}
+        onRemove={onRemoveVideo}
       />
     </View>
   );

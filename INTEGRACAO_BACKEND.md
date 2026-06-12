@@ -123,8 +123,15 @@ CREATE TABLE users (
 ```
 
 > `video` é opcional e representa a **aula do curso** (conteúdo pago), não um
-> vídeo de divulgação. Cadastrado pelo admin como link direto para o arquivo
-> (ver Passo 5 — Meus Cursos).
+> vídeo de divulgação. No admin, o vídeo é **escolhido da galeria do
+> dispositivo** (`ProdutoVideoPicker`, mesmo padrão do `ProdutoImagePicker`),
+> não digitado como link (ver Passo 5 — Meus Cursos e seção "Upload de
+> imagem/vídeo do produto" abaixo).
+>
+> **Especificação recomendada do arquivo**: `.mp4` (H.264), até 1080p e
+> ~50MB por aula. Vídeos maiores devem ser hospedados externamente (CDN/
+> streaming) e referenciados por URL — o `expo-video` também suporta `.m3u8`
+> (HLS).
 
 ### Endpoints a implementar
 
@@ -145,13 +152,18 @@ automaticamente.
 > O frontend já restringe a navegação para a área admin, mas a validação
 > real de permissão **precisa existir no backend**.
 
-### Upload de imagem do produto
-- No app, a imagem é escolhida da galeria (`useImagePicker`) e fica como
-  uma URI local (`file://...`) no formulário.
-- Para integrar: antes de `createProduto`/`updateProduto`, fazer upload da
-  imagem em uma requisição separada (igual a `userService.updateAvatar`,
-  com `FormData`/`multipart/form-data`) e usar a **URL retornada pelo
-  backend** no campo `image` antes de enviar o restante dos dados do produto.
+### Upload de imagem/vídeo do produto
+- No app, tanto a imagem quanto o vídeo da aula são escolhidos da galeria
+  (`useImagePicker` → `pickImage`/`pickVideo`) e ficam como uma URI local
+  (`file://...`) no formulário (`ProdutoImagePicker`/`ProdutoVideoPicker`).
+- Para integrar: antes de `createProduto`/`updateProduto`, fazer upload de
+  cada arquivo em uma requisição separada (igual a
+  `userService.updateAvatar`, com `FormData`/`multipart/form-data`) e usar a
+  **URL retornada pelo backend** nos campos `image`/`video` antes de enviar
+  o restante dos dados do produto.
+- Para `video`, o backend pode validar tamanho/formato no upload (ver
+  especificação recomendada acima) e, opcionalmente, processar o arquivo
+  para gerar uma versão `.m3u8`/HLS.
 
 ### Banco de dados
 Tabela `produtos`:
@@ -186,6 +198,18 @@ de seed para popular a tabela `produtos` na primeira migração.
 ```ts
 { id, title, mentor, price, image, quantity }
 ```
+
+> **Regra de negócio**: cada curso só pode ser comprado **1 vez** — não há
+> seleção de quantidade. `quantity` é sempre `1` e existe apenas por
+> compatibilidade com o modelo de `Order`/`pedido_itens` (Passo 4). O
+> frontend já impede adicionar o mesmo produto duas vezes
+> (`CartContext.addItem`) e impede comprar um curso já presente no
+> histórico de pedidos (`ProdutoDetailScreen`, ver Passo 4).
+>
+> **Validação recomendada no backend**: `PUT /api/cart` e
+> `POST /api/orders` devem rejeitar itens cujo `produto_id` já exista em
+> `pedido_itens` do usuário autenticado (curso já comprado), além de
+> garantir `quantity = 1` por item.
 
 ### Endpoints a implementar
 

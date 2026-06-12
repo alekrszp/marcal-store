@@ -15,6 +15,7 @@ const KEYS = {
   REFRESH_TOKEN: '@marcalstore:refreshToken',
   AVATAR:        '@marcalstore:avatar',
   PRODUTOS:      '@marcalstore:produtos',
+  PRODUTOS_SEED_VERSION: '@marcalstore:produtosSeedVersion',
   CART:          '@marcalstore:cart',
   ORDERS:        '@marcalstore:orders',
 };
