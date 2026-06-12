@@ -125,7 +125,7 @@ src/
   `.m3u8`/HLS). Links de páginas (YouTube, Drive, etc.) não são suportados
   pelo `expo-video`
 - Por enquanto, apenas 2 produtos do seed (`src/data/produtos.js`) têm
-  `video` de exemplo: "Mente Milionária" e "Mindset Vencedor"
+  `video` de exemplo: "A Arte de Vender" e "Mindset Vencedor"
 
 ---
 

@@ -16,12 +16,12 @@ export const CATEGORIES = ['Todos', 'Mentoria', 'Negócios', 'Mindset', 'Vendas'
 
 export const PRODUTOS = [
   {
-    id: '1', title: 'Mente Milionária', mentor: 'Pablo Marçal', price: 997, tag: 'TOP', category: 'Mentoria',
-    image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400&q=80',
-    descricao: 'Desbloqueie o potencial da sua mente para atrair riqueza, abundância e sucesso. Uma jornada de transformação real com Pablo Marçal.',
+    id: '1', title: 'A Arte de Vender', mentor: 'Jordan Belfort', price: 997, tag: 'TOP', category: 'Mentoria',
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&q=80',
+    descricao: 'Domine a arte da venda: da prospecção ao fechamento. As técnicas, os scripts e a mentalidade que fazem Jordan Belfort um dos maiores vendedores do mundo.',
     cargaHoraria: '32h',
-    modulos: ['Fundamentos da Mentalidade Rica', 'Quebrando Crenças Limitantes', 'Hábitos de Milionários', 'Visão e Propósito', 'Ação Massiva'],
-    video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    modulos: ['Mentalidade do Vendedor de Elite', 'Prospecção e Conexão', 'Storytelling de Vendas', 'Quebra de Objeções', 'Fechamento e Follow-up'],
+    video: require('../../assets/videos/curso-arte-de-vender.mp4'),
   },
   {
     id: '2', title: 'Gestão de Elite', mentor: 'Alessandro', price: 697, category: 'Negócios',
@@ -45,12 +45,12 @@ export const PRODUTOS = [
     modulos: ['Autoconhecimento do Líder', 'Comunicação Poderosa', 'Gestão de Conflitos', 'Cultura de Alta Performance', 'Legado e Impacto'],
   },
   {
-    id: '5', title: 'Mindset Vencedor', mentor: 'Pablo Marçal', price: 497, tag: 'TOP', category: 'Mindset',
+    id: '5', title: 'Mindset Vencedor', mentor: 'Terence Fletcher', price: 497, tag: 'TOP', category: 'Mindset',
     image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&q=80',
     descricao: 'Reprograme sua mente para a vitória. Disciplina, foco e resiliência como ferramentas diárias para alcançar resultados extraordinários.',
     cargaHoraria: '18h',
     modulos: ['Disciplina como Estilo de Vida', 'Foco e Produtividade', 'Resiliência Mental', 'Rotina de Campeão', 'Mentalidade Anti-Frágil'],
-    video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    video: require('../../assets/videos/curso-mindset-vencedor.mp4'),
   },
   {
     id: '6', title: 'Finanças do Zero', mentor: 'Alessandro', price: 397, tag: 'NOVO', category: 'Negócios',
