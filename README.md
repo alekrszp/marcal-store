@@ -36,9 +36,9 @@ No terminal do Expo:
 - `i` — abre no simulador iOS
 - Escaneie o QR code com o app **Expo Go** para testar no celular
 
-O app funciona **100% offline/mock** por padrão (sem backend nem banco de
-dados) — todos os dados são simulados via `src/data/*` e persistidos
-localmente no AsyncStorage do dispositivo.
+O app funciona **100% offline** por padrão (`USE_MOCK = true` em
+`src/services/config.js`) — sem precisar de backend rodando.
+Para integrar com o backend, veja [`INTEGRACAO_BACKEND.md`](./INTEGRACAO_BACKEND.md).
 
 ---
 
@@ -156,23 +156,24 @@ inline** e **sem valores "mágicos"** espalhados pelo código.
 
 ## Modo mock vs. modo API real
 
-Tudo é controlado por uma única flag em `src/services/config.js`:
+Controlado por uma única flag em `src/services/config.js`:
 
 ```js
-export const USE_MOCK = true; // false = usa httpClient + API_URL
+export const USE_MOCK = true;  // padrão — funciona sem backend
+export const API_URL  = 'http://10.0.2.2:8765'; // gateway-service (Android Emulator)
 ```
 
-Com `USE_MOCK = true` (padrão atual):
+**`USE_MOCK = true` (padrão):**
 - Não precisa de backend nem banco de dados
-- Produtos, carrinho, pedidos e usuário ficam salvos no AsyncStorage do
-  dispositivo (`src/storage/asyncStorageHelper.js`)
-- Os dados de `src/data/*` servem como "seed" inicial
+- Dados vêm de `src/data/*` e persistem no AsyncStorage do dispositivo
+- Ideal para desenvolvimento e demonstração
 
-Com `USE_MOCK = false`:
-- Todas as chamadas passam a usar `src/services/httpClient.js` contra `API_URL`
-- Cada `service` (`userService`, `produtoService`, `cartService`,
-  `orderService`) já tem blocos `// INTEGRAÇÃO:` documentando rota, método,
-  body e resposta esperada para cada endpoint
+**`USE_MOCK = false`:**
+- Todas as chamadas vão para o `gateway-service` em `API_URL`
+- Os services já estão preparados com os endpoints corretos do backend:
+  - `userService` → `POST /auth/signin`, `POST /auth/signup`
+  - `produtoService` → `GET /products?targetCurrency=BRL`, `/ws/product/**`
+  - `orderService` → `GET /ws/orders/BRL`, `POST /ws/orders`
 
 Veja o passo a passo completo em [`INTEGRACAO_BACKEND.md`](./INTEGRACAO_BACKEND.md).
 
