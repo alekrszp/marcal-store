@@ -1,18 +1,15 @@
 // Service de autenticação e dados do usuário.
 //
-// MODO ATUAL: USE_MOCK = true (config.js) — tudo funciona localmente,
-// sem backend, usando AsyncStorage para simular sessão e persistência.
+// Integrado com o auth-service via gateway-service (Spring Cloud Gateway).
+// Endpoints:
+//   POST /auth/signup — cadastro   → body: { name, email, password }
+//   POST /auth/signin — login      → body: { email, password }
 //
-// PARA INTEGRAR COM A API REAL:
-// 1. Trocar USE_MOCK para false em src/services/config.js
-// 2. Ajustar API_URL para o endereço do backend
-// 3. Garantir que o backend implemente os endpoints comentados abaixo
+// O auth-service não expõe GET /me nem endpoint de avatar.
+// Os dados do usuário são extraídos do payload JWT e persistidos localmente.
 //
-// SEGURANÇA:
-// - Toda comunicação deve ocorrer via HTTPS (API_URL com https://)
-// - Senhas nunca são armazenadas localmente, apenas enviadas no login/cadastro
-// - O token retornado pelo backend é salvo via storage (ver storage/asyncStorageHelper.js
-//   para nota sobre armazenamento seguro de token em produção)
+// USE_MOCK = true  (config.js) → funciona sem backend (AsyncStorage local)
+// USE_MOCK = false (config.js) → usa o gateway em API_URL
 
 import storage from '../storage/asyncStorageHelper';
 import httpClient from './httpClient';

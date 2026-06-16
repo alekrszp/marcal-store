@@ -1,39 +1,24 @@
 // Service de produtos (catálogo + CRUD da área administrativa).
 //
-// MODO ATUAL: USE_MOCK = true (config.js) — os produtos são persistidos no
-// AsyncStorage do dispositivo, "semeados" a partir de src/data/produtos.js
-// na primeira execução. O CRUD do admin (criar/editar/excluir) altera essa
-// lista local, e o catálogo do cliente reflete essas alterações.
+// Integrado com o product-service via gateway-service.
+// Endpoints públicos (sem JWT):
+//   GET /products?targetCurrency=BRL    — lista todos os produtos em BRL
 //
-// PARA INTEGRAR COM A API REAL:
-// 1. Trocar USE_MOCK para false em src/services/config.js
-// 2. Garantir que o backend implemente os endpoints comentados abaixo,
-//    todos seguindo o modelo Produto:
-//    { id, title, mentor, price, tag?, category, image, descricao?, cargaHoraria?, modulos?, video? }
+// Endpoints protegidos (JWT admin, rota /ws/** bloqueada pelo gateway):
+//   POST   /ws/product         — cria produto
+//   PUT    /ws/product/{id}    — atualiza produto
+//   DELETE /ws/product/{id}    — remove produto
 //
-// VÍDEO: "video" é o arquivo da AULA do curso (conteúdo pago). No admin,
-// "video" é escolhido da galeria do dispositivo via ProdutoVideoPicker
-// (URI local, ex: file://...), igual ao fluxo de "image". Em modo mock essa
-// URI é salva diretamente. Produtos com "video" aparecem em "Meus Cursos"
-// (MeusCursosScreen) somente para clientes que já compraram o produto (ver
-// useMeusCursos.js).
+// Os campos do backend (name, imageUrl, videoUrl, description...) são
+// mapeados para o modelo do app (title, image, video, descricao...) pelas
+// funções _mapProduto / _toBackendProduto abaixo.
 //
-// Especificação recomendada do arquivo de vídeo:
-// - Formato: .mp4 (codec H.264) — compatível com expo-video em iOS/Android
-// - Resolução: até 1080p (1920x1080)
-// - Tamanho: recomendado até ~50MB por aula (arquivos maiores devem ser
-//   hospedados externamente e referenciados por URL, ver abaixo)
-// - Duração: sem limite técnico, mas o player não exibe transcrição/capítulos
+// IMAGEM e VÍDEO: o campo imageUrl/videoUrl deve ser uma URL pública
+// (Cloudinary, Supabase Storage, etc.). O upload para o serviço de storage
+// é responsabilidade do colega que integrar o backend.
 //
-// IMAGEM e VÍDEO: no admin, ambos são escolhidos da galeria do dispositivo
-// (URI local, ex: file://...). Em modo mock essa URI é salva diretamente.
-// Com API real, o upload deve ser feito via multipart/form-data (igual a
-// userService.updateAvatar) — createProduto/updateProduto devem enviar
-// "image" e "video" em requisições separadas (upload de arquivo) e usar as
-// URLs retornadas pelo backend nesses campos antes de enviar o restante dos
-// dados do produto. Para vídeos grandes, o backend pode optar por retornar
-// uma URL de um serviço de streaming/CDN (ex: .m3u8/HLS) — o expo-video
-// também suporta esse formato.
+// USE_MOCK = true  (config.js) → dados locais (AsyncStorage, src/data/produtos.js)
+// USE_MOCK = false (config.js) → usa o gateway em API_URL
 
 import storage from '../storage/asyncStorageHelper';
 import httpClient from './httpClient';

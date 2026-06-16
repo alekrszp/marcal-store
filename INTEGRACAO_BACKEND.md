@@ -1,363 +1,159 @@
-# Guia de Integração com Backend e Banco de Dados
+# Guia de Integração com Backend (Microservices)
 
-Este documento descreve, passo a passo, como conectar o frontend (este
-projeto) a um backend real com banco de dados, substituindo o modo mock
-atual (`USE_MOCK = true`).
-
-O frontend já está **preparado** para essa migração: cada `service` tem
-blocos de comentário `// INTEGRAÇÃO:` descrevendo exatamente a rota, o
-método HTTP, o body esperado e o formato da resposta. Este guia organiza
-esse trabalho em uma ordem prática.
+Este documento descreve como o frontend se conecta ao backend desenvolvido
+em Spring Boot com arquitetura de microservices.
 
 ---
 
-## Visão geral da migração
+## Visão geral
 
-1. Subir o backend com os endpoints descritos abaixo
-2. Trocar `USE_MOCK` para `false` em `src/services/config.js`
-3. Apontar `API_URL` para o servidor
-4. Testar fluxo por fluxo (autenticação → produtos → carrinho → pedidos)
-5. (Opcional) Migrar token para `expo-secure-store`
+O app se comunica exclusivamente com o **gateway-service** (Spring Cloud Gateway),
+que roteia as requisições para os microservices corretos e protege as rotas
+`/ws/**` com autenticação JWT.
 
-Nenhum componente, screen ou hook precisa mudar — toda a integração fica
-isolada na camada `src/services/`.
+```
+App React Native
+     │
+     ▼
+gateway-service  (porta 8765)
+     ├─► auth-service      → /auth/**
+     ├─► product-service   → /products/** e /ws/product/**
+     └─► order-service     → /ws/orders/**
+```
 
 ---
 
-## Passo 0 — Configuração central
+## Configuração central — `src/services/config.js`
 
-### `src/services/config.js`
 ```js
+// USE_MOCK = false → integração real com o gateway
+// USE_MOCK = true  → dados locais (sem backend)
 export const USE_MOCK = false;
-export const API_URL  = 'https://api.marcalstore.com.br'; // ajustar para o seu backend
+
+// Android Emulator acessa o host via 10.0.2.2
+// iOS Simulator / Expo Web: trocar para http://localhost:8765
+export const API_URL = 'http://10.0.2.2:8765';
 ```
-
-> ⚠️ Sempre usar **HTTPS** em produção. `http://` só é aceitável em
-> desenvolvimento local (ex: `http://192.168.x.x:3000`).
-
-### `src/services/httpClient.js`
-Já centraliza:
-- Montagem da URL (`API_URL + endpoint`)
-- Header `Authorization: Bearer <token>` (lido do AsyncStorage)
-- Parse de erro no formato `{ message: string }`
-- Tratamento de sessão expirada (401 → limpa storage e força novo login)
-
-**Ação necessária**: o backend deve responder erros como
-`{ "message": "mensagem amigável" }`. Se usar outro formato (`{ error }`,
-`{ errors: [...] }`), ajustar a função `extractErrorMessage` neste arquivo.
 
 ---
 
-## Passo 1 — Autenticação e usuário (`src/services/userService.js`)
+## Autenticação — `src/services/userService.js`
 
-### Modelo de dados — Usuário
-```ts
-{
-  id:     string,
-  nome:   string,
-  email:  string,
-  avatar?: string,   // URL da imagem
-  role?:  'admin' | 'cliente',
-}
-```
+### auth-service
 
-### Endpoints a implementar
+| Função     | Endpoint        | Método | Body                            | Resposta          |
+|------------|-----------------|--------|---------------------------------|-------------------|
+| `login`    | `/auth/signin`  | POST   | `{ email, password }`           | `{ token, ... }`  |
+| `register` | `/auth/signup`  | POST   | `{ name, email, password }`     | `{ token, ... }`  |
 
-| Função              | Endpoint                       | Método | Body                          | Resposta                                  | Observações |
-|---------------------|---------------------------------|--------|--------------------------------|--------------------------------------------|-------------|
-| `login`             | `/api/auth/login`               | POST   | `{ email, senha }`             | `{ token, refreshToken?, user }`           | Erro 401 com `{ message: 'E-mail ou senha incorretos' }` |
-| `register`          | `/api/auth/register`            | POST   | `{ nome, email, senha }`       | `{ token, user }`                          | Erro 409 com `{ message: 'E-mail já cadastrado' }` |
-| `getUser`           | `/api/auth/me`                  | GET    | —                               | `{ id, nome, email, avatar?, role? }`      | Usado para restaurar sessão ao abrir o app |
-| `updateAvatar`      | `/api/auth/me/avatar`           | PATCH  | `FormData` (campo `avatar`)    | —                                            | `multipart/form-data`, não passa pelo `httpClient` |
-| `requestPasswordReset` | `/api/auth/forgot-password`  | POST   | `{ email }`                    | `{ success: true }`                        | Backend envia e-mail com link/código |
-| `logout` (opcional) | `/api/auth/logout`              | POST   | —                               | —                                            | Para invalidar `refreshToken` no servidor |
+> O auth-service não expõe endpoint `/me`. Os dados do usuário são extraídos
+> do payload JWT (`_decodeUserFromToken`) e persistidos no AsyncStorage.
+> Avatar é salvo apenas localmente (sem endpoint de upload no auth-service).
 
-### Banco de dados
-Tabela `users`:
-```sql
-CREATE TABLE users (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  nome          VARCHAR(255) NOT NULL,
-  email         VARCHAR(255) UNIQUE NOT NULL,
-  senha_hash    VARCHAR(255) NOT NULL,
-  avatar_url    TEXT,
-  role          VARCHAR(20) NOT NULL DEFAULT 'cliente', -- 'cliente' | 'admin'
-  created_at    TIMESTAMP DEFAULT now()
-);
-```
-
-### Papel de admin (`role`)
-- Hoje (mock), `src/data/admin.js` define `ADMIN_EMAILS` e o `userService`
-  calcula `role` no login/cadastro a partir dessa lista.
-- **Com backend real**: o campo `role` deve vir pronto do backend (coluna
-  `role` na tabela `users`, definida manualmente ou por um endpoint
-  administrativo). `src/data/admin.js` deixa de ser usado — pode ser
-  removido após a migração.
-
-### Refresh token (opcional, recomendado)
-- Se o backend retornar `refreshToken` no login/cadastro, salvar com
-  `storage.save(storage.KEYS.REFRESH_TOKEN, data.refreshToken)` (já há um
-  comentário indicando onde fazer isso em `userService.js`).
-- Implementar a renovação em `httpClient.js`, no bloco que trata `401`
-  (`POST /api/auth/refresh` com o `refreshToken` salvo).
+### Formato do token
+O frontend aceita `{ token }` ou `{ accessToken }` na resposta do login/signup.
+Se o backend retornar apenas a string do token, também funciona.
+O payload JWT deve conter: `sub` (ou `id`), `email`, `role` (ou `roles[0]`).
 
 ---
 
-## Passo 2 — Produtos (`src/services/produtoService.js`)
+## Produtos — `src/services/produtoService.js`
 
-### Modelo de dados — Produto
-```ts
-{
-  id:            string,
-  title:         string,
-  mentor:        string,
-  price:         number,
-  tag?:          string,        // ex: 'TOP', 'NOVO'
-  category:      string,
-  image:         string,        // URL da imagem
-  descricao?:    string,
-  cargaHoraria?: string,        // ex: '32h'
-  modulos?:      string[],
-  video?:        string,        // URL do arquivo de vídeo da aula (.mp4/.m3u8)
-}
-```
+### product-service
 
-> `video` é opcional e representa a **aula do curso** (conteúdo pago), não um
-> vídeo de divulgação. No admin, o vídeo é **escolhido da galeria do
-> dispositivo** (`ProdutoVideoPicker`, mesmo padrão do `ProdutoImagePicker`),
-> não digitado como link (ver Passo 5 — Meus Cursos e seção "Upload de
-> imagem/vídeo do produto" abaixo).
->
-> **Especificação recomendada do arquivo**: `.mp4` (H.264), até 1080p e
-> ~50MB por aula. Vídeos maiores devem ser hospedados externamente (CDN/
-> streaming) e referenciados por URL — o `expo-video` também suporta `.m3u8`
-> (HLS).
+| Função           | Endpoint                          | Método | Auth  | Body                     | Resposta              |
+|------------------|-----------------------------------|--------|-------|--------------------------|-----------------------|
+| `getProdutos`    | `/products?targetCurrency=BRL`    | GET    | Não   | —                        | `Array<Produto>`      |
+| `getCategories`  | `/products?targetCurrency=BRL`    | GET    | Não   | —                        | derivado da lista     |
+| `createProduto`  | `/ws/product`                     | POST   | JWT   | Produto (sem id)         | Produto criado        |
+| `updateProduto`  | `/ws/product/{id}`                | PUT    | JWT   | Produto atualizado       | Produto atualizado    |
+| `deleteProduto`  | `/ws/product/{id}`                | DELETE | JWT   | —                        | 204 No Content        |
 
-### Endpoints a implementar
+### Mapeamento de campos
 
-| Função            | Endpoint                  | Método | Body                | Resposta              |
-|-------------------|----------------------------|--------|----------------------|------------------------|
-| `getProdutos`     | `/api/produtos?category=X` | GET    | —                    | `Array<Produto>`       |
-| `getCategories`   | `/api/categories`           | GET    | —                    | `Array<string>`        |
-| `createProduto`   | `/api/produtos`             | POST   | `Produto` (sem `id`) | `Produto` criado (com `id`) |
-| `updateProduto`   | `/api/produtos/:id`         | PUT    | `Produto`            | `Produto` atualizado   |
-| `deleteProduto`   | `/api/produtos/:id`         | DELETE | —                    | `204 No Content`       |
+O frontend usa nomes em português/abreviados; o backend usa inglês:
 
-Todas as rotas (exceto se for decidido tornar o catálogo público) devem
-exigir `Authorization: Bearer <token>` — o `httpClient` já envia esse header
-automaticamente.
+| App (frontend)  | Backend           |
+|-----------------|-------------------|
+| `title`         | `name`            |
+| `mentor`        | `instructor`      |
+| `image`         | `imageUrl`        |
+| `video`         | `videoUrl`        |
+| `descricao`     | `description`     |
+| `cargaHoraria`  | `workload`        |
+| `modulos`       | `modules`         |
 
-> **Autorização do CRUD**: o backend deve validar que apenas usuários com
-> `role === 'admin'` consigam chamar `createProduto`/`updateProduto`/`deleteProduto`.
-> O frontend já restringe a navegação para a área admin, mas a validação
-> real de permissão **precisa existir no backend**.
-
-### Upload de imagem/vídeo do produto
-- No app, tanto a imagem quanto o vídeo da aula são escolhidos da galeria
-  (`useImagePicker` → `pickImage`/`pickVideo`) e ficam como uma URI local
-  (`file://...`) no formulário (`ProdutoImagePicker`/`ProdutoVideoPicker`).
-- Para integrar: antes de `createProduto`/`updateProduto`, fazer upload de
-  cada arquivo em uma requisição separada (igual a
-  `userService.updateAvatar`, com `FormData`/`multipart/form-data`) e usar a
-  **URL retornada pelo backend** nos campos `image`/`video` antes de enviar
-  o restante dos dados do produto.
-- Para `video`, o backend pode validar tamanho/formato no upload (ver
-  especificação recomendada acima) e, opcionalmente, processar o arquivo
-  para gerar uma versão `.m3u8`/HLS.
-
-### Banco de dados
-Tabela `produtos`:
-```sql
-CREATE TABLE produtos (
-  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title          VARCHAR(255) NOT NULL,
-  mentor         VARCHAR(255) NOT NULL,
-  price          NUMERIC(10,2) NOT NULL,
-  tag            VARCHAR(20),
-  category       VARCHAR(100) NOT NULL,
-  image_url      TEXT NOT NULL,
-  descricao      TEXT,
-  carga_horaria  VARCHAR(20),
-  modulos        JSONB,           -- array de strings
-  video_url      TEXT,            -- URL do vídeo da aula (.mp4/.m3u8), opcional
-  created_at     TIMESTAMP DEFAULT now()
-);
-```
-Categorias podem ser uma tabela separada (`categorias`) ou um `enum`/lista
-fixa, dependendo da necessidade de o admin criar novas categorias.
-
-### Seed inicial
-`src/data/produtos.js` (`PRODUTOS`, `CATEGORIES`) pode ser usado como dados
-de seed para popular a tabela `produtos` na primeira migração.
+> `imageUrl` e `videoUrl` devem ser URLs públicas (Cloudinary, Supabase
+> Storage, etc.). O upload para o serviço de storage é feito pelo backend
+> ou pelo colega responsável por essa integração.
 
 ---
 
-## Passo 3 — Carrinho (`src/services/cartService.js`)
+## Pedidos — `src/services/orderService.js`
 
-### Modelo de dados — Item do carrinho
-```ts
-{ id, title, mentor, price, image, quantity }
-```
+### order-service
 
-> **Regra de negócio**: cada curso só pode ser comprado **1 vez** — não há
-> seleção de quantidade. `quantity` é sempre `1` e existe apenas por
-> compatibilidade com o modelo de `Order`/`pedido_itens` (Passo 4). O
-> frontend já impede adicionar o mesmo produto duas vezes
-> (`CartContext.addItem`) e impede comprar um curso já presente no
-> histórico de pedidos (`ProdutoDetailScreen`, ver Passo 4).
->
-> **Validação recomendada no backend**: `PUT /api/cart` e
-> `POST /api/orders` devem rejeitar itens cujo `produto_id` já exista em
-> `pedido_itens` do usuário autenticado (curso já comprado), além de
-> garantir `quantity = 1` por item.
+| Função        | Endpoint           | Método | Auth | Body                              | Resposta              |
+|---------------|--------------------|--------|------|-----------------------------------|-----------------------|
+| `getOrders`   | `/ws/orders/BRL`   | GET    | JWT  | —                                 | `Array<Order>`        |
+| `createOrder` | `/ws/orders`       | POST   | JWT  | `{ items, paymentMethod, total }` | Order criado          |
 
-### Endpoints a implementar
+### Mapeamento de campos (resposta do backend)
 
-| Função     | Endpoint     | Método | Body              | Resposta            |
-|------------|--------------|--------|--------------------|----------------------|
-| `getCart`  | `/api/cart`  | GET    | —                  | `Array<CartItem>`    |
-| `saveCart` | `/api/cart`  | PUT    | `Array<CartItem>`  | —                    |
-
-Ambas exigem `Authorization: Bearer <token>` — o carrinho é por usuário, não
-por dispositivo.
-
-### Banco de dados
-Tabela `carrinho_itens`:
-```sql
-CREATE TABLE carrinho_itens (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  produto_id  UUID NOT NULL REFERENCES produtos(id),
-  quantity    INTEGER NOT NULL DEFAULT 1,
-  UNIQUE (user_id, produto_id)
-);
-```
-- `GET /api/cart` faz join com `produtos` para retornar `title, mentor,
-  price, image` atualizados (em vez de valores "congelados" salvos no
-  cliente).
-- `PUT /api/cart` substitui (upsert) os itens do usuário autenticado.
-
-> Alternativa mais simples (sem tabela própria): manter o carrinho como
-> JSON em uma coluna `cart_json` na tabela `users`. Funciona, mas perde a
-> integridade referencial com `produtos`.
+| App (frontend)  | Backend (possíveis variações) |
+|-----------------|-------------------------------|
+| `id`            | `id` ou `orderId`             |
+| `date`          | `date` ou `createdAt`         |
+| `items`         | `items` ou `products`         |
+| `paymentMethod` | `paymentMethod` ou `payment`  |
+| `total`         | `total` ou `totalAmount`      |
 
 ---
 
-## Passo 4 — Pedidos / Comprovante / Histórico (`src/services/orderService.js`)
+## Rotas protegidas (JWT)
 
-### Modelo de dados — Pedido
-```ts
-{
-  id:            string,
-  date:          string,   // ISO 8601
-  items:         Array<{ id, title, mentor, price, quantity }>,
-  paymentMethod: string,   // 'Pix' | 'Cartão de Crédito' | 'Boleto'
-  total:         number,
-}
-```
+O gateway-service bloqueia todas as rotas `/ws/**` e exige token válido.
+O `httpClient` (`src/services/httpClient.js`) já envia automaticamente o
+header `Authorization: Bearer <token>` em todas as chamadas com
+`requireAuth: true` (padrão).
 
-### Endpoints a implementar
-
-| Função        | Endpoint      | Método | Body                                   | Resposta                          |
-|---------------|---------------|--------|------------------------------------------|--------------------------------------|
-| `getOrders`   | `/api/orders` | GET    | —                                          | `Array<Order>` (mais recente primeiro) |
-| `createOrder` | `/api/orders` | POST   | `{ items, paymentMethod, total }`         | `Order` criado (com `id` e `date` gerados pelo backend) |
-
-Ambas exigem `Authorization: Bearer <token>`.
-
-### Banco de dados
-```sql
-CREATE TABLE pedidos (
-  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id         UUID NOT NULL REFERENCES users(id),
-  payment_method  VARCHAR(50) NOT NULL,
-  total           NUMERIC(10,2) NOT NULL,
-  created_at      TIMESTAMP DEFAULT now()
-);
-
-CREATE TABLE pedido_itens (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  pedido_id   UUID NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
-  produto_id  UUID NOT NULL REFERENCES produtos(id),
-  title       VARCHAR(255) NOT NULL,  -- "congelado" no momento da compra
-  mentor      VARCHAR(255) NOT NULL,
-  price       NUMERIC(10,2) NOT NULL,
-  quantity    INTEGER NOT NULL
-);
-```
-
-> Importante: salvar `title`/`mentor`/`price` **no momento da compra** (não
-> apenas referenciar `produto_id`), pois o produto pode mudar de preço ou
-> ser excluído depois — o comprovante deve refletir o que foi comprado.
-
-### Lógica recomendada do `POST /api/orders`
-1. Validar que o usuário está autenticado
-2. Recalcular o `total` no backend a partir dos preços atuais dos
-   `produtos` (não confiar apenas no `total` enviado pelo app)
-3. Criar registro em `pedidos` + `pedido_itens`
-4. Esvaziar o carrinho do usuário (`DELETE FROM carrinho_itens WHERE user_id = ...`)
-5. Retornar o pedido criado no formato `Order` esperado pelo app
+Rotas **públicas** (sem JWT):
+- `POST /auth/signin`
+- `POST /auth/signup`
+- `GET /products?targetCurrency=BRL`
 
 ---
 
-## Passo 5 — Meus Cursos (`src/hooks/useMeusCursos.js`)
+## Tratamento de erros
 
-A área "Meus Cursos" mostra os produtos com `video` que o cliente já comprou,
-para que ele assista às aulas.
-
-### Como funciona hoje (mock)
-O hook `useMeusCursos` faz tudo no app:
-1. `orderService.getOrders()` → todos os pedidos do usuário
-2. `produtoService.getProdutos('Todos')` → catálogo completo
-3. Calcula o conjunto de `produto_id` comprados (a partir de `order.items`)
-4. Filtra o catálogo: produtos comprados **e** que possuem `video`
-
-### Endpoint dedicado (opcional, recomendado)
-Para evitar 2 requisições e o cruzamento no cliente, o backend pode expor:
-
-| Função          | Endpoint           | Método | Resposta |
-|------------------|--------------------|--------|------------|
-| `getMeusCursos` | `/api/my-courses`  | GET    | `Array<Produto>` (apenas produtos comprados pelo usuário autenticado, com `video` preenchido) |
-
-### Lógica recomendada do `GET /api/my-courses`
-```sql
-SELECT DISTINCT p.*
-FROM produtos p
-JOIN pedido_itens pi ON pi.produto_id = p.id
-JOIN pedidos pe       ON pe.id = pi.pedido_id
-WHERE pe.user_id = :userId
-  AND p.video_url IS NOT NULL;
+O `httpClient` espera que erros do backend venham no formato:
+```json
+{ "message": "descrição do erro" }
 ```
+Se o backend usar outro formato (`{ "error": "..." }` ou `{ "errors": [...] }`),
+ajustar a função `extractErrorMessage` em `src/services/httpClient.js`.
 
-Se esse endpoint for criado, basta trocar a implementação de
-`useMeusCursos.js` para chamar `httpClient.request('/api/my-courses')`
-diretamente, sem precisar de `getOrders` + `getProdutos`.
-
-### Reprodução do vídeo
-- Usa `expo-video` (`VideoPlayerScreen`), que só reproduz **arquivos de
-  vídeo diretos** (`.mp4`, `.m3u8`/HLS).
-- O vídeo de divulgação da Home (`PROMO_VIDEO`, em `src/data/promo.js`) é um
-  asset local (`assets/videos/`). Se quiser trocar por um vídeo vindo do
-  backend, basta substituir o `require(...)` por uma URL retornada por um
-  endpoint (ex: `GET /api/promo`).
+O status `401` limpa o storage e força novo login automaticamente.
 
 ---
 
-## Passo 6 — Checklist final de migração
+## Executando o projeto
 
-- [ ] Backend no ar com todos os endpoints acima implementados
-- [ ] `USE_MOCK = false` e `API_URL` apontando para o servidor (HTTPS)
-- [ ] Erros do backend no formato `{ message: string }` (ou ajustar
-      `extractErrorMessage` em `httpClient.js`)
-- [ ] Testar **Cadastro → Login → restauração de sessão** (fechar e reabrir o app)
-- [ ] Testar **catálogo** (Home, Produtos, Detalhe)
-- [ ] Testar **CRUD admin** com um usuário `role: 'admin'` e bloqueio para `role: 'cliente'`
-- [ ] Testar **upload de imagem** (avatar e produto) via multipart
-- [ ] Testar **carrinho** persistindo entre sessões/dispositivos do mesmo usuário
-- [ ] Testar **checkout → comprovante → histórico** com recálculo de total no backend
-- [ ] Testar **Meus Cursos**: comprar um produto com `video` e confirmar que ele
-      aparece na lista e a aula reproduz corretamente
-- [ ] Remover `src/data/admin.js` (role agora vem do backend) e, opcionalmente,
-      `src/data/produtos.js`/`src/data/user.js` (mantidos só como referência/seed)
-- [ ] (Opcional) Migrar `TOKEN`/`REFRESH_TOKEN` para `expo-secure-store`
-- [ ] (Opcional) Implementar refresh token automático em `httpClient.js`
+```bash
+# 1. Instalar dependências
+npm install
+
+# 2. Subir o backend (docker-compose do repositório do backend)
+docker-compose up
+
+# 3. Iniciar o app
+npx expo start
+
+# Android Emulator: pressione 'a' no terminal
+# iOS Simulator:    pressione 'i' no terminal
+# Expo Go (device): escanear o QR code
+```
+
+> Para iOS Simulator ou Expo Go em device físico, trocar `10.0.2.2` por
+> `localhost` (simulador) ou pelo IP da máquina na rede local (device físico)
+> em `src/services/config.js`.

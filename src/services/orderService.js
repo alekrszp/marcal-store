@@ -1,12 +1,12 @@
 // Service de pedidos (comprovante + histórico de compras).
 //
-// MODO ATUAL: USE_MOCK = true (config.js) — os pedidos são persistidos no
-// AsyncStorage do dispositivo, mais recente primeiro.
+// Integrado com o order-service via gateway-service.
+// Endpoints protegidos (JWT, rota /ws/** bloqueada pelo gateway):
+//   GET  /ws/orders/BRL  — lista pedidos do usuário autenticado em BRL
+//   POST /ws/orders      — cria novo pedido
 //
-// PARA INTEGRAR COM A API REAL:
-// 1. Trocar USE_MOCK para false em src/services/config.js
-// 2. Garantir que o backend implemente os endpoints comentados abaixo,
-//    seguindo o modelo Order: { id, date, items, paymentMethod, total }
+// USE_MOCK = true  (config.js) → persiste pedidos no AsyncStorage local
+// USE_MOCK = false (config.js) → usa o gateway em API_URL
 
 import storage from '../storage/asyncStorageHelper';
 import httpClient from './httpClient';
