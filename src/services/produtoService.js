@@ -40,6 +40,47 @@ import httpClient from './httpClient';
 import { USE_MOCK } from './config';
 import { PRODUTOS, CATEGORIES, PRODUTOS_SEED_VERSION } from '../data/produtos';
 
+// Converte o modelo do backend (product-service) para o modelo do app.
+// O backend usa "name" e "price" em BRL já convertido pelo currency-service.
+function _mapProduto(p) {
+  return {
+    id:           String(p.id),
+    title:        p.name ?? p.title ?? '',
+    mentor:       p.mentor ?? p.instructor ?? '',
+    price:        p.price ?? 0,
+    currency:     p.currency ?? 'BRL',
+    tag:          p.tag ?? null,
+    category:     p.category ?? p.categoria ?? '',
+    image:        p.imageUrl ?? p.image ?? null,
+    descricao:    p.description ?? p.descricao ?? '',
+    cargaHoraria: p.workload ?? p.cargaHoraria ?? '',
+    modulos:      p.modules ?? p.modulos ?? [],
+    video:        p.videoUrl ?? p.video ?? null,
+  };
+}
+
+function _mapProdutos(lista, category) {
+  const mapped = (lista ?? []).map(_mapProduto);
+  if (!category || category === 'Todos') return mapped;
+  return mapped.filter(p => p.category === category);
+}
+
+// Converte o modelo do app para o formato esperado pelo backend.
+function _toBackendProduto(data) {
+  return {
+    name:        data.title,
+    instructor:  data.mentor,
+    price:       data.price,
+    tag:         data.tag,
+    category:    data.category,
+    imageUrl:    data.image,
+    description: data.descricao,
+    workload:    data.cargaHoraria,
+    modules:     data.modulos,
+    videoUrl:    data.video,
+  };
+}
+
 async function loadProdutosSeeded() {
   const saved = await storage.load(storage.KEYS.PRODUTOS);
   const savedVersion = await storage.load(storage.KEYS.PRODUTOS_SEED_VERSION);
@@ -62,20 +103,22 @@ async function getProdutos(category = null) {
     return produtos.filter(p => p.category === category);
   }
 
-  // INTEGRAÇÃO: GET /api/produtos?category=<category>
-  // Header: Authorization: Bearer <token> (adicionado automaticamente pelo httpClient)
-  // Resposta esperada: Array<Produto>
-  const query = category && category !== 'Todos' ? `?category=${category}` : '';
-  return await httpClient.request(`/api/produtos${query}`);
+  // product-service (via gateway): GET /products?targetCurrency=BRL
+  // Endpoint público — sem autenticação necessária.
+  // Resposta: Array<{ id, name, price, currency, ... }>
+  const params = new URLSearchParams({ targetCurrency: 'BRL' });
+  const produtos = await httpClient.request(`/products?${params}`, { requireAuth: false });
+  return _mapProdutos(produtos, category);
 }
 
 async function getCategories() {
   if (USE_MOCK) return CATEGORIES;
 
-  // INTEGRAÇÃO: GET /api/categories
-  // Header: Authorization: Bearer <token> (adicionado automaticamente pelo httpClient)
-  // Resposta esperada: Array<string>
-  return await httpClient.request('/api/categories');
+  // Categorias derivadas dos produtos — o product-service não tem endpoint separado.
+  const params = new URLSearchParams({ targetCurrency: 'BRL' });
+  const produtos = await httpClient.request(`/products?${params}`, { requireAuth: false });
+  const cats = [...new Set(produtos.map(p => p.category ?? p.categoria).filter(Boolean))];
+  return cats.length ? cats : CATEGORIES;
 }
 
 async function createProduto(data) {
@@ -86,12 +129,10 @@ async function createProduto(data) {
     return novoProduto;
   }
 
-  // INTEGRAÇÃO: POST /api/produtos
-  // Body: Produto (sem id, gerado pelo backend)
-  // Resposta esperada: Produto criado (com id)
-  return await httpClient.request('/api/produtos', {
+  // product-service (via gateway): POST /ws/product — protegido por JWT (admin)
+  return await httpClient.request('/ws/product', {
     method: 'POST',
-    body:   data,
+    body:   _toBackendProduto(data),
   });
 }
 
@@ -103,12 +144,10 @@ async function updateProduto(id, data) {
     return atualizados.find(p => p.id === id);
   }
 
-  // INTEGRAÇÃO: PUT /api/produtos/:id
-  // Body: Produto atualizado
-  // Resposta esperada: Produto atualizado
-  return await httpClient.request(`/api/produtos/${id}`, {
+  // product-service (via gateway): PUT /ws/product/{id} — protegido por JWT (admin)
+  return await httpClient.request(`/ws/product/${id}`, {
     method: 'PUT',
-    body:   data,
+    body:   _toBackendProduto(data),
   });
 }
 
@@ -120,9 +159,8 @@ async function deleteProduto(id) {
     return;
   }
 
-  // INTEGRAÇÃO: DELETE /api/produtos/:id
-  // Resposta esperada: 204 No Content
-  await httpClient.request(`/api/produtos/${id}`, { method: 'DELETE' });
+  // product-service (via gateway): DELETE /ws/product/{id} — protegido por JWT (admin)
+  await httpClient.request(`/ws/product/${id}`, { method: 'DELETE' });
 }
 
 export default { getProdutos, getCategories, createProduto, updateProduto, deleteProduto };

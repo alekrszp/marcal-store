@@ -12,16 +12,28 @@ import storage from '../storage/asyncStorageHelper';
 import httpClient from './httpClient';
 import { USE_MOCK } from './config';
 
+// Normaliza o modelo do order-service para o formato usado pelo app.
+function _mapOrder(o) {
+  return {
+    id:            String(o.id ?? o.orderId ?? Date.now()),
+    date:          o.date ?? o.createdAt ?? new Date().toISOString(),
+    items:         o.items ?? o.products ?? [],
+    paymentMethod: o.paymentMethod ?? o.payment ?? '',
+    total:         o.total ?? o.totalAmount ?? 0,
+    currency:      o.currency ?? 'BRL',
+  };
+}
+
 async function getOrders() {
   if (USE_MOCK) {
     const saved = await storage.load(storage.KEYS.ORDERS);
     return saved ?? [];
   }
 
-  // INTEGRAÇÃO: GET /api/orders
-  // Header: Authorization: Bearer <token> (adicionado automaticamente pelo httpClient)
-  // Resposta esperada: Array<Order> (mais recente primeiro)
-  return await httpClient.request('/api/orders');
+  // order-service (via gateway): GET /ws/orders/BRL — protegido por JWT
+  // Retorna pedidos do usuário autenticado com valores em BRL
+  const orders = await httpClient.request('/ws/orders/BRL');
+  return (orders ?? []).map(_mapOrder);
 }
 
 async function createOrder({ items, paymentMethod, total }) {
@@ -39,13 +51,12 @@ async function createOrder({ items, paymentMethod, total }) {
     return order;
   }
 
-  // INTEGRAÇÃO: POST /api/orders
-  // Body: { items, paymentMethod, total }
-  // Resposta esperada: Order criado (com id e date gerados pelo backend)
-  return await httpClient.request('/api/orders', {
+  // order-service (via gateway): POST /ws/orders — protegido por JWT
+  const created = await httpClient.request('/ws/orders', {
     method: 'POST',
     body:   { items, paymentMethod, total },
   });
+  return _mapOrder(created ?? order);
 }
 
 export default { getOrders, createOrder };

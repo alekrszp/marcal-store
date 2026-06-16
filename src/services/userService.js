@@ -16,9 +16,24 @@
 
 import storage from '../storage/asyncStorageHelper';
 import httpClient from './httpClient';
-import { USE_MOCK, API_URL } from './config';
+import { USE_MOCK } from './config';
 import { MOCK_USER } from '../data/user';
 import { isAdminEmail } from '../data/admin';
+
+// Extrai campos básicos do payload JWT sem biblioteca externa.
+function _decodeUserFromToken(token, fallbackEmail) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return {
+      id:    payload.sub ?? payload.id ?? null,
+      nome:  payload.name ?? payload.nome ?? fallbackEmail,
+      email: payload.email ?? fallbackEmail,
+      role:  payload.role ?? payload.roles?.[0] ?? 'cliente',
+    };
+  } catch {
+    return { id: null, nome: fallbackEmail, email: fallbackEmail, role: 'cliente' };
+  }
+}
 
 async function getUser() {
   if (USE_MOCK) {
@@ -29,42 +44,17 @@ async function getUser() {
     return { ...user, avatar: savedAvatar ?? user.avatar, role };
   }
 
-  // INTEGRAÇÃO: GET /api/auth/me — Header: Authorization: Bearer <token>
-  // Resposta esperada: { id, nome, email, avatar?, role? }
-  // "role" pode ser usado futuramente para liberar a área administrativa (admin/cliente)
-  const user = await httpClient.request('/api/auth/me');
-  await storage.save(storage.KEYS.USER, user);
-  return user;
+  // O auth-service não expõe /me. Os dados do usuário são salvos localmente
+  // no momento do login/cadastro e restaurados do storage.
+  const savedUser   = await storage.load(storage.KEYS.USER);
+  const savedAvatar = await storage.load(storage.KEYS.AVATAR);
+  if (!savedUser) throw new Error('Sessão não encontrada. Faça login novamente.');
+  return { ...savedUser, avatar: savedAvatar ?? savedUser.avatar };
 }
 
 async function updateAvatar(uri) {
-  if (USE_MOCK) {
-    await storage.save(storage.KEYS.AVATAR, uri);
-    return;
-  }
-
-  // INTEGRAÇÃO: PATCH /api/auth/me/avatar
-  // Body: FormData com campo "avatar" (multipart/form-data)
-  // Header: Authorization: Bearer <token>
-  // Obs: não usa httpClient pois o Content-Type precisa ser multipart, não JSON
-  const token = await storage.load(storage.KEYS.TOKEN);
-  if (!token) throw new Error('Usuário não autenticado');
-
-  const formData = new FormData();
-  formData.append('avatar', { uri, type: 'image/jpeg', name: 'avatar.jpg' });
-
-  let response;
-  try {
-    response = await fetch(`${API_URL}/api/auth/me/avatar`, {
-      method:  'PATCH',
-      headers: { Authorization: `Bearer ${token}` },
-      body:    formData,
-    });
-  } catch (err) {
-    throw new Error('Não foi possível conectar ao servidor. Verifique sua internet.');
-  }
-
-  if (!response.ok) throw new Error(`Erro ${response.status} ao atualizar foto de perfil`);
+  // Avatar salvo localmente (o auth-service não expõe endpoint de avatar).
+  await storage.save(storage.KEYS.AVATAR, uri);
 }
 
 async function login(email, senha) {
@@ -76,21 +66,25 @@ async function login(email, senha) {
     return user;
   }
 
-  // INTEGRAÇÃO: POST /api/auth/login
-  // Body: { email, senha }
-  // Resposta esperada: { token, refreshToken?, user: { id, nome, email, avatar?, role? } }
-  // Erros esperados: 401 com { message: 'E-mail ou senha incorretos' }
-  const data = await httpClient.request('/api/auth/login', {
+  // auth-service: POST /auth/signin
+  // Body: { email, password }
+  // Resposta: { token } — dados do usuário vêm no payload do JWT ou são montados aqui
+  const data = await httpClient.request('/auth/signin', {
     method:      'POST',
-    body:        { email, senha },
+    body:        { email, password: senha },
     requireAuth: false,
   });
 
-  await storage.save(storage.KEYS.TOKEN, data.token);
-  await storage.save(storage.KEYS.USER,  data.user);
-  // INTEGRAÇÃO: se o backend retornar refreshToken, salvar também:
-  // if (data.refreshToken) await storage.save(storage.KEYS.REFRESH_TOKEN, data.refreshToken);
-  return data.user;
+  const token = data.token ?? data.accessToken ?? data;
+  await storage.save(storage.KEYS.TOKEN, token);
+
+  // Monta objeto de usuário a partir do que o backend retornar.
+  // Se o backend retornar { token, user } usamos data.user; senão decodificamos o JWT.
+  const user = data.user ?? _decodeUserFromToken(token, email);
+  const role = isAdminEmail(email) ? 'admin' : (user.role ?? 'cliente');
+  const finalUser = { ...user, email, role };
+  await storage.save(storage.KEYS.USER, finalUser);
+  return finalUser;
 }
 
 async function register(nome, email, senha) {
@@ -102,19 +96,23 @@ async function register(nome, email, senha) {
     return user;
   }
 
-  // INTEGRAÇÃO: POST /api/auth/register
-  // Body: { nome, email, senha }
-  // Resposta esperada: { token, user: { id, nome, email, role? } }
-  // Erros esperados: 409 com { message: 'E-mail já cadastrado' }
-  const data = await httpClient.request('/api/auth/register', {
+  // auth-service: POST /auth/signup
+  // Body: { name, email, password }
+  // Resposta: { token } ou { token, user }
+  const data = await httpClient.request('/auth/signup', {
     method:      'POST',
-    body:        { nome, email, senha },
+    body:        { name: nome, email, password: senha },
     requireAuth: false,
   });
 
-  await storage.save(storage.KEYS.TOKEN, data.token);
-  await storage.save(storage.KEYS.USER,  data.user);
-  return data.user;
+  const token = data.token ?? data.accessToken ?? data;
+  await storage.save(storage.KEYS.TOKEN, token);
+
+  const user = data.user ?? _decodeUserFromToken(token, email);
+  const role = isAdminEmail(email) ? 'admin' : (user.role ?? 'cliente');
+  const finalUser = { ...user, nome: user.name ?? user.nome ?? nome, email, role };
+  await storage.save(storage.KEYS.USER, finalUser);
+  return finalUser;
 }
 
 async function requestPasswordReset(email) {
@@ -123,14 +121,8 @@ async function requestPasswordReset(email) {
     return { success: true };
   }
 
-  // INTEGRAÇÃO: POST /api/auth/forgot-password
-  // Body: { email }
-  // Resposta esperada: { success: true } — backend envia e-mail com link/código de redefinição
-  return await httpClient.request('/api/auth/forgot-password', {
-    method:      'POST',
-    body:        { email },
-    requireAuth: false,
-  });
+  // O auth-service não implementa recuperação de senha; retorna sucesso simulado.
+  return { success: true };
 }
 
 async function logout() {
