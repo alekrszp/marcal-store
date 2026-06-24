@@ -2,20 +2,12 @@
 //
 // Integrado com o product-service via gateway-service.
 // Endpoints públicos (sem JWT):
-//   GET /products?targetCurrency=BRL    — lista todos os produtos em BRL
+//   GET /products?targetCurrency=BRL&page=0&size=100
 //
 // Endpoints protegidos (JWT admin, rota /ws/** bloqueada pelo gateway):
-//   POST   /ws/product         — cria produto
-//   PUT    /ws/product/{id}    — atualiza produto
-//   DELETE /ws/product/{id}    — remove produto
-//
-// Os campos do backend (name, imageUrl, videoUrl, description...) são
-// mapeados para o modelo do app (title, image, video, descricao...) pelas
-// funções _mapProduto / _toBackendProduto abaixo.
-//
-// IMAGEM e VÍDEO: o campo imageUrl/videoUrl deve ser uma URL pública
-// (Cloudinary, Supabase Storage, etc.). O upload para o serviço de storage
-// é responsabilidade do colega que integrar o backend.
+//   POST   /ws/products         — cria produto
+//   PUT    /ws/products/{id}    — atualiza produto
+//   DELETE /ws/products/{id}    — remove produto
 //
 // USE_MOCK = true  (config.js) → dados locais (AsyncStorage, src/data/produtos.js)
 // USE_MOCK = false (config.js) → usa o gateway em API_URL
@@ -24,22 +16,36 @@ import storage from '../storage/asyncStorageHelper';
 import httpClient from './httpClient';
 import { USE_MOCK } from './config';
 import { PRODUTOS, CATEGORIES, PRODUTOS_SEED_VERSION } from '../data/produtos';
+import {
+  unwrapPage,
+  parseWorkload,
+  parseModulesCount,
+  formatWorkload,
+} from './apiHelpers';
 
-// Converte o modelo do backend (product-service) para o modelo do app.
-// O backend usa "name" e "price" em BRL já convertido pelo currency-service.
+const PAGE_SIZE = 100;
+
 function _mapProduto(p) {
+  const price = p.convertedPrice ?? p.price ?? 0;
+  const currency = p.requestedCurrency ?? p.currency ?? 'BRL';
+  const modulesCount = typeof p.modules === 'number'
+    ? p.modules
+    : (Array.isArray(p.modulos) ? p.modulos.length : 0);
+
   return {
     id:           String(p.id),
     title:        p.name ?? p.title ?? '',
-    mentor:       p.mentor ?? p.instructor ?? '',
-    price:        p.price ?? 0,
-    currency:     p.currency ?? 'BRL',
+    mentor:       p.instructor ?? p.mentor ?? '',
+    price,
+    currency,
     tag:          p.tag ?? null,
-    category:     p.category ?? p.categoria ?? '',
+    category:     p.category ?? p.categoria ?? 'Curso',
     image:        p.imageUrl ?? p.image ?? null,
     descricao:    p.description ?? p.descricao ?? '',
-    cargaHoraria: p.workload ?? p.cargaHoraria ?? '',
-    modulos:      p.modules ?? p.modulos ?? [],
+    cargaHoraria: formatWorkload(p.workload ?? p.cargaHoraria),
+    modulos:      Array.isArray(p.modulos)
+      ? p.modulos
+      : (modulesCount > 0 ? Array.from({ length: modulesCount }, (_, i) => `Módulo ${i + 1}`) : []),
     video:        p.videoUrl ?? p.video ?? null,
   };
 }
@@ -50,30 +56,34 @@ function _mapProdutos(lista, category) {
   return mapped.filter(p => p.category === category);
 }
 
-// Converte o modelo do app para o formato esperado pelo backend.
 function _toBackendProduto(data) {
   return {
     name:        data.title,
     instructor:  data.mentor,
     price:       data.price,
-    tag:         data.tag,
-    category:    data.category,
-    imageUrl:    data.image,
-    description: data.descricao,
-    workload:    data.cargaHoraria,
-    modules:     data.modulos,
-    videoUrl:    data.video,
+    currency:    'BRL',
+    imageUrl:    typeof data.image === 'string' ? data.image : '',
+    videoUrl:    typeof data.video === 'string' ? data.video : '',
+    description: data.descricao ?? '',
+    workload:    parseWorkload(data.cargaHoraria),
+    modules:     parseModulesCount(data.modulos),
   };
+}
+
+async function _fetchAllProducts() {
+  const params = new URLSearchParams({
+    targetCurrency: 'BRL',
+    page:           '0',
+    size:           String(PAGE_SIZE),
+  });
+  const response = await httpClient.request(`/products?${params}`, { requireAuth: false });
+  return unwrapPage(response);
 }
 
 async function loadProdutosSeeded() {
   const saved = await storage.load(storage.KEYS.PRODUTOS);
   const savedVersion = await storage.load(storage.KEYS.PRODUTOS_SEED_VERSION);
 
-  // Se o seed em produtos.js mudou (PRODUTOS_SEED_VERSION), os produtos
-  // salvos no AsyncStorage são substituídos pelo novo seed. Isso garante que
-  // alterações feitas em produtos.js (durante o desenvolvimento) apareçam no
-  // app mesmo após a primeira execução.
   if (saved && savedVersion === PRODUTOS_SEED_VERSION) return saved;
 
   await storage.save(storage.KEYS.PRODUTOS, PRODUTOS);
@@ -88,22 +98,16 @@ async function getProdutos(category = null) {
     return produtos.filter(p => p.category === category);
   }
 
-  // product-service (via gateway): GET /products?targetCurrency=BRL
-  // Endpoint público — sem autenticação necessária.
-  // Resposta: Array<{ id, name, price, currency, ... }>
-  const params = new URLSearchParams({ targetCurrency: 'BRL' });
-  const produtos = await httpClient.request(`/products?${params}`, { requireAuth: false });
+  const produtos = await _fetchAllProducts();
   return _mapProdutos(produtos, category);
 }
 
 async function getCategories() {
   if (USE_MOCK) return CATEGORIES;
 
-  // Categorias derivadas dos produtos — o product-service não tem endpoint separado.
-  const params = new URLSearchParams({ targetCurrency: 'BRL' });
-  const produtos = await httpClient.request(`/products?${params}`, { requireAuth: false });
+  const produtos = await _fetchAllProducts();
   const cats = [...new Set(produtos.map(p => p.category ?? p.categoria).filter(Boolean))];
-  return cats.length ? cats : CATEGORIES;
+  return cats.length ? ['Todos', ...cats] : CATEGORIES;
 }
 
 async function createProduto(data) {
@@ -114,11 +118,11 @@ async function createProduto(data) {
     return novoProduto;
   }
 
-  // product-service (via gateway): POST /ws/product — protegido por JWT (admin)
-  return await httpClient.request('/ws/product', {
+  const created = await httpClient.request('/ws/products', {
     method: 'POST',
     body:   _toBackendProduto(data),
   });
+  return _mapProduto({ ...created, category: data.category });
 }
 
 async function updateProduto(id, data) {
@@ -129,11 +133,11 @@ async function updateProduto(id, data) {
     return atualizados.find(p => p.id === id);
   }
 
-  // product-service (via gateway): PUT /ws/product/{id} — protegido por JWT (admin)
-  return await httpClient.request(`/ws/product/${id}`, {
+  const updated = await httpClient.request(`/ws/products/${id}`, {
     method: 'PUT',
     body:   _toBackendProduto(data),
   });
+  return _mapProduto({ ...updated, category: data.category });
 }
 
 async function deleteProduto(id) {
@@ -144,8 +148,7 @@ async function deleteProduto(id) {
     return;
   }
 
-  // product-service (via gateway): DELETE /ws/product/{id} — protegido por JWT (admin)
-  await httpClient.request(`/ws/product/${id}`, { method: 'DELETE' });
+  await httpClient.request(`/ws/products/${id}`, { method: 'DELETE' });
 }
 
 export default { getProdutos, getCategories, createProduto, updateProduto, deleteProduto };

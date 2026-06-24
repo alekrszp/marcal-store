@@ -22,7 +22,11 @@ export default function useMeusCursos() {
         produtoService.getProdutos('Todos'),
       ]);
 
-      const comprados = new Set(orders.flatMap(order => order.items.map(item => item.id)));
+      const comprados = new Set(
+        orders.flatMap(order =>
+          order.items.map(item => String(item.id ?? item.productId))
+        )
+      );
       setCursos(produtos.filter(p => comprados.has(p.id) && p.video));
     } catch (err) {
       setHasError(err.message || true);

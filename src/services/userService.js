@@ -16,20 +16,29 @@ import httpClient from './httpClient';
 import { USE_MOCK } from './config';
 import { MOCK_USER } from '../data/user';
 import { isAdminEmail } from '../data/admin';
+import { userTypeToRole } from './apiHelpers';
 
-// Extrai campos básicos do payload JWT sem biblioteca externa.
 function _decodeUserFromToken(token, fallbackEmail) {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
     return {
-      id:    payload.sub ?? payload.id ?? null,
+      id:    String(payload.id ?? payload.sub ?? ''),
       nome:  payload.name ?? payload.nome ?? fallbackEmail,
       email: payload.email ?? fallbackEmail,
-      role:  payload.role ?? payload.roles?.[0] ?? 'cliente',
+      role:  userTypeToRole(payload.type ?? payload.role),
     };
   } catch {
     return { id: null, nome: fallbackEmail, email: fallbackEmail, role: 'cliente' };
   }
+}
+
+function _mapBackendUser(user, email) {
+  return {
+    id:    String(user.id ?? ''),
+    nome:  user.name ?? user.nome ?? email,
+    email: user.email ?? email,
+    role:  userTypeToRole(user.type),
+  };
 }
 
 async function getUser() {
@@ -41,8 +50,6 @@ async function getUser() {
     return { ...user, avatar: savedAvatar ?? user.avatar, role };
   }
 
-  // O auth-service não expõe /me. Os dados do usuário são salvos localmente
-  // no momento do login/cadastro e restaurados do storage.
   const savedUser   = await storage.load(storage.KEYS.USER);
   const savedAvatar = await storage.load(storage.KEYS.AVATAR);
   if (!savedUser) throw new Error('Sessão não encontrada. Faça login novamente.');
@@ -50,7 +57,6 @@ async function getUser() {
 }
 
 async function updateAvatar(uri) {
-  // Avatar salvo localmente (o auth-service não expõe endpoint de avatar).
   await storage.save(storage.KEYS.AVATAR, uri);
 }
 
@@ -63,25 +69,23 @@ async function login(email, senha) {
     return user;
   }
 
-  // auth-service: POST /auth/signin
-  // Body: { email, password }
-  // Resposta: { token } — dados do usuário vêm no payload do JWT ou são montados aqui
   const data = await httpClient.request('/auth/signin', {
     method:      'POST',
     body:        { email, password: senha },
     requireAuth: false,
   });
 
-  const token = data.token ?? data.accessToken ?? data;
+  const token = data.token;
+  if (!token) throw new Error('Token não recebido do servidor');
+
   await storage.save(storage.KEYS.TOKEN, token);
 
-  // Monta objeto de usuário a partir do que o backend retornar.
-  // Se o backend retornar { token, user } usamos data.user; senão decodificamos o JWT.
-  const user = data.user ?? _decodeUserFromToken(token, email);
-  const role = isAdminEmail(email) ? 'admin' : (user.role ?? 'cliente');
-  const finalUser = { ...user, email, role };
-  await storage.save(storage.KEYS.USER, finalUser);
-  return finalUser;
+  const user = data.user
+    ? _mapBackendUser(data.user, email)
+    : _decodeUserFromToken(token, email);
+
+  await storage.save(storage.KEYS.USER, user);
+  return user;
 }
 
 async function register(nome, email, senha) {
@@ -93,39 +97,22 @@ async function register(nome, email, senha) {
     return user;
   }
 
-  // auth-service: POST /auth/signup
-  // Body: { name, email, password }
-  // Resposta: { token } ou { token, user }
-  const data = await httpClient.request('/auth/signup', {
+  // signup retorna apenas UserEntity (sem token) — faz signin em seguida
+  await httpClient.request('/auth/signup', {
     method:      'POST',
     body:        { name: nome, email, password: senha },
     requireAuth: false,
   });
 
-  const token = data.token ?? data.accessToken ?? data;
-  await storage.save(storage.KEYS.TOKEN, token);
-
-  const user = data.user ?? _decodeUserFromToken(token, email);
-  const role = isAdminEmail(email) ? 'admin' : (user.role ?? 'cliente');
-  const finalUser = { ...user, nome: user.name ?? user.nome ?? nome, email, role };
-  await storage.save(storage.KEYS.USER, finalUser);
-  return finalUser;
+  return await login(email, senha);
 }
 
 async function requestPasswordReset(email) {
-  if (USE_MOCK) {
-    // Em mock, apenas simula sucesso (nenhum e-mail é enviado de fato)
-    return { success: true };
-  }
-
-  // O auth-service não implementa recuperação de senha; retorna sucesso simulado.
+  if (USE_MOCK) return { success: true };
   return { success: true };
 }
 
 async function logout() {
-  // INTEGRAÇÃO: opcionalmente, chamar POST /api/auth/logout antes de limpar o
-  // storage local, para que o backend invalide o refreshToken salvo.
-  // Ex: if (!USE_MOCK) await httpClient.request('/api/auth/logout', { method: 'POST' });
   await storage.clearAll();
 }
 

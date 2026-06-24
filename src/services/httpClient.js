@@ -51,11 +51,23 @@ async function request(endpoint, { method = 'GET', body, requireAuth = true, hea
   }
 
   if (!response.ok) {
-    const errorBody = await response.json().catch(() => null);
+    const contentType = response.headers.get('content-type') ?? '';
+    let errorBody = null;
+
+    if (contentType.includes('application/json')) {
+      errorBody = await response.json().catch(() => null);
+    } else {
+      const text = await response.text().catch(() => '');
+      errorBody = text ? { message: text } : null;
+    }
+
     throw new Error(extractErrorMessage(errorBody, `Erro ${response.status}`));
   }
 
   if (response.status === 204) return null;
+
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.includes('application/json')) return null;
   return await response.json();
 }
 

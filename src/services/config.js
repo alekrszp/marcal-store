@@ -1,18 +1,38 @@
-// Configuração central de integração com backend/API.
-//
-// USE_MOCK = true  → app funciona 100% local, sem backend.
-//                    Dados vêm de src/data/* e persistem no AsyncStorage.
-// USE_MOCK = false → todas as chamadas vão para o gateway-service em API_URL.
-//
-// PARA INTEGRAR COM O BACKEND:
-// 1. Trocar USE_MOCK para false
-// 2. Confirmar que API_URL aponta para o gateway (docker-compose local: porta 8765)
-// 3. Subir o backend com docker-compose up
-// 4. Para Android Emulator usar 10.0.2.2; para iOS Simulator usar localhost
-export const USE_MOCK = true;
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
-// URL do gateway-service (Spring Cloud Gateway).
-// Android Emulator → http://10.0.2.2:8765
-// iOS Simulator    → http://localhost:8765
-// Device físico    → http://<IP-da-maquina>:8765
-export const API_URL = 'http://10.0.2.2:8765';
+// USE_MOCK = true  → app funciona 100% local, sem backend.
+// USE_MOCK = false → todas as chamadas vão para o gateway-service em API_URL.
+export const USE_MOCK = false;
+
+const GATEWAY_PORT = 8765;
+
+// Se a detecção automática falhar no Expo Go, defina o IP da sua máquina na rede Wi‑Fi.
+// Ex.: '192.168.18.29' (ipconfig → IPv4)
+const API_HOST_OVERRIDE = null;
+
+function resolveDevHost() {
+  if (API_HOST_OVERRIDE) return API_HOST_OVERRIDE;
+
+  // Expo Go no celular físico: usa o mesmo IP do Metro bundler (rede local).
+  const fromExpo =
+    Constants.expoGoConfig?.debuggerHost ??
+    Constants.expoConfig?.hostUri;
+
+  if (fromExpo) {
+    const host = fromExpo.split(':')[0];
+    if (host && host !== 'localhost' && host !== '127.0.0.1') {
+      return host;
+    }
+  }
+
+  // Android Emulator → host da máquina
+  if (Platform.OS === 'android' && !Constants.isDevice) {
+    return '10.0.2.2';
+  }
+
+  // iOS Simulator / web
+  return 'localhost';
+}
+
+export const API_URL = `http://${resolveDevHost()}:${GATEWAY_PORT}`;
