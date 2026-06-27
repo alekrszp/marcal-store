@@ -1,11 +1,18 @@
 import { useState } from 'react';
+import { isRemoteUrl, isAppMediaUrl } from '../services/mediaHelpers';
+import { parsePrice } from '../services/apiHelpers';
 
 const EMPTY_FORM = {
   title: '', mentor: '', price: '', tag: '', category: '',
-  image: '', descricao: '', cargaHoraria: '', modulos: [], video: '',
+  image: '', descricao: '', cargaHoraria: '', modulos: [], video: '', videoLink: '',
 };
 
 function produtoToForm(produto) {
+  const rawVideo = produto.video ?? '';
+  const videoIsExternalLink = typeof rawVideo === 'string'
+    && isRemoteUrl(rawVideo)
+    && !isAppMediaUrl(rawVideo);
+
   return {
     title:        produto.title ?? '',
     mentor:       produto.mentor ?? '',
@@ -16,12 +23,8 @@ function produtoToForm(produto) {
     descricao:    produto.descricao ?? '',
     cargaHoraria: produto.cargaHoraria ?? '',
     modulos:      produto.modulos ?? [],
-    // "video" normalmente é uma string (URI escolhida na galeria ou URL
-    // remota já integrada). Os 2 cursos de exemplo do seed usam um número
-    // (asset bundlado via require()) — nesse caso mantemos o valor como está
-    // e o ProdutoVideoPicker mostra um rótulo fixo, sem permitir editar a
-    // origem do arquivo (só remover).
-    video:        produto.video ?? '',
+    video:        videoIsExternalLink ? '' : rawVideo,
+    videoLink:    videoIsExternalLink ? rawVideo : '',
   };
 }
 
@@ -41,28 +44,37 @@ export default function useProdutoForm(produto) {
     const newErrors = {};
     if (!form.title.trim())                                   newErrors.title    = 'Informe o título do produto';
     if (!form.mentor.trim())                                   newErrors.mentor   = 'Informe o autor/mentor';
-    if (!form.price.trim() || Number(form.price) <= 0)         newErrors.price    = 'Informe um preço válido';
-    else if (Number(form.price) > 99999.99)                    newErrors.price    = 'Preço máximo: R$ 99.999,99';
+    const parsedPrice = parsePrice(form.price);
+    if (!form.price.trim() || parsedPrice <= 0)                newErrors.price    = 'Informe um preço válido';
+    else if (parsedPrice > 99999.99)                           newErrors.price    = 'Preço máximo: R$ 99.999,99';
     if (!form.category.trim())                                 newErrors.category = 'Selecione uma categoria';
     if (!form.image.trim())                                    newErrors.image    = 'Selecione uma imagem para o produto';
+
+    const link = form.videoLink.trim();
+    if (link && !isRemoteUrl(link)) {
+      newErrors.videoLink = 'Informe um link válido (http:// ou https://)';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
 
   function toProdutoData() {
+    const videoFromLink = form.videoLink.trim();
+    const videoFromGallery = typeof form.video === 'string' ? form.video.trim() : form.video;
+    const video = videoFromLink || videoFromGallery || undefined;
+
     return {
       title:        form.title.trim(),
       mentor:       form.mentor.trim(),
-      price:        Number(form.price),
+      price:        parsePrice(form.price),
       tag:          form.tag.trim() || undefined,
       category:     form.category.trim(),
       image:        form.image.trim(),
       descricao:    form.descricao.trim() || undefined,
       cargaHoraria: form.cargaHoraria.trim() || undefined,
-      modulos:      form.modulos.length ? form.modulos : undefined,
-      // form.video pode ser string (URI/URL) ou number (asset require() dos
-      // cursos de exemplo do seed, ver produtoToForm acima).
-      video:        typeof form.video === 'string' ? (form.video.trim() || undefined) : form.video,
+      modulos:      form.modulos,
+      video,
     };
   }
 

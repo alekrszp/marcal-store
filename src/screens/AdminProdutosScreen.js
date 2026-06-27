@@ -66,8 +66,9 @@ export default function AdminProdutosScreen({ navigation }) {
       </TouchableOpacity>
 
       <FlatList
-        data={produtos}
-        keyExtractor={(item) => item.id}
+        style={styles.listFlex}
+        data={Array.isArray(produtos) ? produtos : []}
+        keyExtractor={(item, index) => String(item?.id ?? index)}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
           <AdminProdutoListItem
@@ -92,6 +93,7 @@ const styles = StyleSheet.create({
   subtitle:      { ...typography.subtitle, color: colors.textSecondary, marginTop: spacing.xs, marginBottom: spacing.md },
   newButton:     { marginHorizontal: spacing.lg, marginBottom: spacing.md, height: 52, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   newButtonText: { ...typography.button, color: colors.primaryText },
-  list:          { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  listFlex:      { flex: 1 },
+  list:          { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl, flexGrow: 1 },
   emptyText:     { ...typography.small, color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xl },
 });

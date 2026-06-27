@@ -71,4 +71,46 @@ async function request(endpoint, { method = 'GET', body, requireAuth = true, hea
   return await response.json();
 }
 
-export default { request };
+async function upload(endpoint, formData, { requireAuth = true } = {}) {
+  const finalHeaders = {};
+
+  if (requireAuth) {
+    const token = await storage.load(storage.KEYS.TOKEN);
+    if (!token) throw new Error('Usuário não autenticado');
+    finalHeaders.Authorization = `Bearer ${token}`;
+  }
+
+  let response;
+  try {
+    response = await fetch(`${API_URL}${endpoint}`, {
+      method: 'POST',
+      headers: finalHeaders,
+      body: formData,
+    });
+  } catch {
+    throw new Error('Não foi possível conectar ao servidor. Verifique sua internet.');
+  }
+
+  if (response.status === 401) {
+    await storage.clearAll();
+    throw new Error('Sessão expirada. Faça login novamente.');
+  }
+
+  if (!response.ok) {
+    const contentType = response.headers.get('content-type') ?? '';
+    let errorBody = null;
+
+    if (contentType.includes('application/json')) {
+      errorBody = await response.json().catch(() => null);
+    } else {
+      const text = await response.text().catch(() => '');
+      errorBody = text ? { message: text } : null;
+    }
+
+    throw new Error(extractErrorMessage(errorBody, `Erro ${response.status}`));
+  }
+
+  return await response.json();
+}
+
+export default { request, upload };

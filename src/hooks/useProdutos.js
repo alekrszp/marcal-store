@@ -11,7 +11,7 @@ export default function useProdutos(category = 'Todos') {
       setIsLoading(true);
       setHasError(false);
       const data = await produtoService.getProdutos(category);
-      setProdutos(data);
+      setProdutos(Array.isArray(data) ? data : []);
     } catch (err) {
       setHasError(err.message || true);
     } finally {

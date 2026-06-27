@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import SafeImage from './SafeImage';
 import { colors, spacing, radius, typography } from '../theme';
 import { formatCurrency } from '../utils/formatters';
 
@@ -7,11 +8,7 @@ export default function ProdutoCard({ produto, onPress, style }) {
   return (
     <TouchableOpacity style={[styles.card, style]} activeOpacity={0.85} onPress={onPress}>
       <View style={styles.thumbContainer}>
-        <Image
-          source={{ uri: produto.image }}
-          style={styles.image}
-          resizeMode="cover"
-        />
+        <SafeImage uri={produto.image} style={styles.image} />
         {produto.tag ? (
           <View style={styles.tag}>
             <Text style={styles.tagText}>{produto.tag}</Text>

@@ -6,6 +6,20 @@ export function unwrapPage(response) {
   return response ?? [];
 }
 
+export function parsePrice(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+
+  const raw = String(value ?? '').trim();
+  if (!raw) return 0;
+
+  const normalized = raw.includes(',')
+    ? raw.replace(/\./g, '').replace(',', '.')
+    : raw;
+
+  const num = Number(normalized);
+  return Number.isFinite(num) ? num : 0;
+}
+
 export function parseWorkload(value) {
   if (typeof value === 'number' && value > 0) return value;
   if (!value) return 1;
@@ -15,8 +29,8 @@ export function parseWorkload(value) {
 
 export function parseModulesCount(value) {
   if (typeof value === 'number' && value >= 0) return value;
-  if (Array.isArray(value)) return value.length || 1;
-  return 1;
+  if (Array.isArray(value)) return value.length;
+  return 0;
 }
 
 export function formatWorkload(workload) {

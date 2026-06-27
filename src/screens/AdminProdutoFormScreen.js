@@ -36,11 +36,21 @@ export default function AdminProdutoFormScreen({ navigation, route }) {
     const uri = await pickVideo({
       permissionMessage: 'Permita o acesso à galeria para escolher um vídeo.',
     });
-    if (uri) setField('video')(uri);
+    if (uri) {
+      setField('video')(uri);
+      setField('videoLink')('');
+    }
   }
 
   function handleRemoveVideo() {
     setField('video')('');
+  }
+
+  function handleVideoLinkChange(value) {
+    setField('videoLink')(value);
+    if (value.trim()) {
+      setField('video')('');
+    }
   }
 
   async function handleSalvar() {
@@ -82,6 +92,7 @@ export default function AdminProdutoFormScreen({ navigation, route }) {
             onPickImage={handlePickImage}
             onPickVideo={handlePickVideo}
             onRemoveVideo={handleRemoveVideo}
+            onVideoLinkChange={handleVideoLinkChange}
           />
 
           <Button

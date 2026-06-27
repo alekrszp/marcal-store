@@ -1,17 +1,3 @@
-// Service de produtos (catálogo + CRUD da área administrativa).
-//
-// Integrado com o product-service via gateway-service.
-// Endpoints públicos (sem JWT):
-//   GET /products?targetCurrency=BRL&page=0&size=100
-//
-// Endpoints protegidos (JWT admin, rota /ws/** bloqueada pelo gateway):
-//   POST   /ws/products         — cria produto
-//   PUT    /ws/products/{id}    — atualiza produto
-//   DELETE /ws/products/{id}    — remove produto
-//
-// USE_MOCK = true  (config.js) → dados locais (AsyncStorage, src/data/produtos.js)
-// USE_MOCK = false (config.js) → usa o gateway em API_URL
-
 import storage from '../storage/asyncStorageHelper';
 import httpClient from './httpClient';
 import { USE_MOCK } from './config';
@@ -20,8 +6,18 @@ import {
   unwrapPage,
   parseWorkload,
   parseModulesCount,
+  parsePrice,
   formatWorkload,
 } from './apiHelpers';
+import {
+  isLocalMediaUri,
+  isRemoteUrl,
+  resolveMediaUrl,
+  toBackendMediaPath,
+  isAppMediaUrl,
+  guessMimeType,
+  guessFileName,
+} from './mediaHelpers';
 
 const PAGE_SIZE = 100;
 
@@ -31,6 +27,7 @@ function _mapProduto(p) {
   const modulesCount = typeof p.modules === 'number'
     ? p.modules
     : (Array.isArray(p.modulos) ? p.modulos.length : 0);
+  const moduleTitles = Array.isArray(p.moduleTitles) ? p.moduleTitles : null;
 
   return {
     id:           String(p.id),
@@ -40,13 +37,15 @@ function _mapProduto(p) {
     currency,
     tag:          p.tag ?? null,
     category:     p.category ?? p.categoria ?? 'Curso',
-    image:        p.imageUrl ?? p.image ?? null,
+    image:        resolveMediaUrl(p.imageUrl ?? p.image ?? null),
     descricao:    p.description ?? p.descricao ?? '',
     cargaHoraria: formatWorkload(p.workload ?? p.cargaHoraria),
-    modulos:      Array.isArray(p.modulos)
-      ? p.modulos
-      : (modulesCount > 0 ? Array.from({ length: modulesCount }, (_, i) => `Módulo ${i + 1}`) : []),
-    video:        p.videoUrl ?? p.video ?? null,
+    modulos:      moduleTitles?.length
+      ? moduleTitles
+      : (Array.isArray(p.modulos)
+        ? p.modulos
+        : (modulesCount > 0 ? Array.from({ length: modulesCount }, (_, i) => `Módulo ${i + 1}`) : [])),
+    video:        resolveMediaUrl(p.videoUrl ?? p.video ?? null),
   };
 }
 
@@ -57,17 +56,64 @@ function _mapProdutos(lista, category) {
 }
 
 function _toBackendProduto(data) {
+  const modulos = Array.isArray(data.modulos) ? data.modulos.filter(Boolean) : [];
+
   return {
-    name:        data.title,
-    instructor:  data.mentor,
-    price:       data.price,
-    currency:    'BRL',
-    imageUrl:    typeof data.image === 'string' ? data.image : '',
-    videoUrl:    typeof data.video === 'string' ? data.video : '',
-    description: data.descricao ?? '',
-    workload:    parseWorkload(data.cargaHoraria),
-    modules:     parseModulesCount(data.modulos),
+    name:         data.title,
+    instructor:   data.mentor,
+    price:        parsePrice(data.price),
+    currency:     'BRL',
+    imageUrl:     toBackendMediaPath(typeof data.image === 'string' ? data.image : ''),
+    videoUrl:     toBackendMediaPath(typeof data.video === 'string' ? data.video : ''),
+    description:  data.descricao ?? '',
+    workload:     parseWorkload(data.cargaHoraria),
+    modules:      parseModulesCount(modulos),
+    moduleTitles: modulos,
   };
+}
+
+async function _uploadLocalMedia(localUri, kind) {
+  const formData = new FormData();
+  formData.append('file', {
+    uri:  localUri,
+    name: guessFileName(localUri, kind),
+    type: guessMimeType(localUri, kind),
+  });
+
+  const result = await httpClient.upload(`/ws/products/upload?kind=${kind}`, formData);
+  return result?.url ?? '';
+}
+
+async function _resolveMediaForBackend(value, kind) {
+  if (!value) return '';
+
+  if (typeof value === 'number') {
+    throw new Error('Atualize a mídia do produto antes de salvar (modo API).');
+  }
+
+  const trimmed = String(value).trim();
+  if (!trimmed) return '';
+
+  if (isRemoteUrl(trimmed)) {
+    if (isAppMediaUrl(trimmed)) return toBackendMediaPath(trimmed);
+    return trimmed;
+  }
+  if (trimmed.startsWith('/media/')) return trimmed;
+
+  if (isLocalMediaUri(trimmed)) {
+    return await _uploadLocalMedia(trimmed, kind);
+  }
+
+  throw new Error(`Selecione um ${kind === 'video' ? 'vídeo' : 'imagem'} válido ou informe um link http(s).`);
+}
+
+async function _prepareProdutoData(data) {
+  const [image, video] = await Promise.all([
+    _resolveMediaForBackend(data.image, 'image'),
+    _resolveMediaForBackend(data.video, 'video'),
+  ]);
+
+  return { ...data, image, video };
 }
 
 async function _fetchAllProducts() {
@@ -118,11 +164,12 @@ async function createProduto(data) {
     return novoProduto;
   }
 
+  const prepared = await _prepareProdutoData(data);
   const created = await httpClient.request('/ws/products', {
     method: 'POST',
-    body:   _toBackendProduto(data),
+    body:   _toBackendProduto(prepared),
   });
-  return _mapProduto({ ...created, category: data.category });
+  return _mapProduto({ ...created, category: prepared.category });
 }
 
 async function updateProduto(id, data) {
@@ -133,11 +180,12 @@ async function updateProduto(id, data) {
     return atualizados.find(p => p.id === id);
   }
 
+  const prepared = await _prepareProdutoData(data);
   const updated = await httpClient.request(`/ws/products/${id}`, {
     method: 'PUT',
-    body:   _toBackendProduto(data),
+    body:   _toBackendProduto(prepared),
   });
-  return _mapProduto({ ...updated, category: data.category });
+  return _mapProduto({ ...updated, category: prepared.category });
 }
 
 async function deleteProduto(id) {

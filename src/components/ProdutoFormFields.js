@@ -7,7 +7,7 @@ import ProdutoVideoPicker from './ProdutoVideoPicker';
 import ModulosEditor from './ModulosEditor';
 import { colors, spacing, typography } from '../theme';
 
-export default function ProdutoFormFields({ form, errors, setField, setModulos, categories, onPickImage, onPickVideo, onRemoveVideo }) {
+export default function ProdutoFormFields({ form, errors, setField, setModulos, categories, onPickImage, onPickVideo, onRemoveVideo, onVideoLinkChange }) {
   return (
     <View>
       <Input
@@ -80,8 +80,11 @@ export default function ProdutoFormFields({ form, errors, setField, setModulos, 
 
       <ProdutoVideoPicker
         video={form.video}
+        videoLink={form.videoLink}
         onPick={onPickVideo}
         onRemove={onRemoveVideo}
+        onVideoLinkChange={onVideoLinkChange}
+        error={errors.videoLink}
       />
     </View>
   );

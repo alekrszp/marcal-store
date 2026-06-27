@@ -1,8 +1,10 @@
 export function formatCurrency(value) {
+  const num = Number(value);
+  const safe = Number.isFinite(num) ? num : 0;
   return new Intl.NumberFormat('pt-BR', {
     style:    'currency',
     currency: 'BRL',
-  }).format(Number(value));
+  }).format(safe);
 }
 
 export function formatDate(isoString) {

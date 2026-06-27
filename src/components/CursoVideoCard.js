@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import SafeImage from './SafeImage';
 import PlayIcon from './PlayIcon';
 import { colors, spacing, radius, typography } from '../theme';
 
@@ -7,7 +8,7 @@ export default function CursoVideoCard({ produto, onPress }) {
   return (
     <TouchableOpacity style={styles.card} activeOpacity={0.85} onPress={onPress}>
       <View style={styles.thumbContainer}>
-        <Image source={{ uri: produto.image }} style={styles.image} resizeMode="cover" />
+        <SafeImage uri={produto.image} style={styles.image} />
         <View style={styles.overlay} />
         <View style={styles.playCircle}>
           <PlayIcon size={28} color={colors.primaryText} />

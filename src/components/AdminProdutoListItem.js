@@ -1,16 +1,17 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import SafeImage from './SafeImage';
 import { colors, spacing, radius, typography } from '../theme';
 import { formatCurrency } from '../utils/formatters';
 
 export default function AdminProdutoListItem({ produto, onEdit, onDelete }) {
   return (
     <View style={styles.card}>
-      <Image source={{ uri: produto.image }} style={styles.image} resizeMode="cover" />
+      <SafeImage uri={produto.image} style={styles.image} />
 
       <View style={styles.info}>
-        <Text style={styles.title} numberOfLines={1}>{produto.title}</Text>
-        <Text style={styles.category} numberOfLines={1}>{produto.category}</Text>
+        <Text style={styles.title} numberOfLines={1}>{produto.title ?? ''}</Text>
+        <Text style={styles.category} numberOfLines={1}>{produto.category ?? 'Curso'}</Text>
         <Text style={styles.price} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
           {formatCurrency(produto.price)}
         </Text>

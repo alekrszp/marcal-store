@@ -3,22 +3,17 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { colors, spacing, typography } from '../theme';
+import { resolveMediaUrl } from '../services/mediaHelpers';
 
-export default function VideoPlayerScreen({ navigation, route }) {
-  const { video, title } = route.params;
-
-  const player = useVideoPlayer(video, (p) => {
+function VideoPlayerContent({ videoUrl, title, onGoBack }) {
+  const player = useVideoPlayer(videoUrl, (p) => {
     p.loop = false;
     p.play();
   });
 
-  function handleGoBack() {
-    navigation.goBack();
-  }
-
   return (
-    <SafeAreaView style={styles.safe}>
-      <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+    <>
+      <TouchableOpacity style={styles.backButton} onPress={onGoBack}>
         <Text style={styles.backText}>← VOLTAR</Text>
       </TouchableOpacity>
 
@@ -33,6 +28,32 @@ export default function VideoPlayerScreen({ navigation, route }) {
           nativeControls
         />
       </View>
+    </>
+  );
+}
+
+export default function VideoPlayerScreen({ navigation, route }) {
+  const { video, title } = route.params ?? {};
+  const videoUrl = resolveMediaUrl(video);
+
+  function handleGoBack() {
+    navigation.goBack();
+  }
+
+  if (!videoUrl) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+          <Text style={styles.backText}>← VOLTAR</Text>
+        </TouchableOpacity>
+        <Text style={styles.errorText}>Vídeo indisponível ou link inválido.</Text>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <VideoPlayerContent videoUrl={videoUrl} title={title} onGoBack={handleGoBack} />
     </SafeAreaView>
   );
 }
@@ -44,4 +65,5 @@ const styles = StyleSheet.create({
   title:         { ...typography.h3, color: colors.textPrimary, paddingHorizontal: spacing.lg, marginBottom: spacing.md },
   videoContainer:{ flex: 1, justifyContent: 'center' },
   video:         { width: '100%', aspectRatio: 16 / 9 },
+  errorText:     { ...typography.body, color: colors.textSecondary, paddingHorizontal: spacing.lg, marginTop: spacing.xl, textAlign: 'center' },
 });

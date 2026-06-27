@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import SafeImage from '../components/SafeImage';
 import ModuloItem from '../components/ModuloItem';
 import g from '../theme/globalStyles';
 import { colors, spacing, radius, typography } from '../theme';
@@ -30,6 +31,10 @@ export default function ProdutoDetailScreen({ navigation, route }) {
     navigation.goBack();
   }
 
+  function handleAssistirVideo() {
+    navigation.navigate('VideoPlayer', { video: produto.video, title: produto.title });
+  }
+
   async function handleAdicionarAoCarrinho() {
     const adicionado = await addItem(produto);
     if (!adicionado) {
@@ -55,7 +60,7 @@ export default function ProdutoDetailScreen({ navigation, route }) {
       <ScrollView showsVerticalScrollIndicator={false}>
 
         <View style={styles.imageContainer}>
-          <Image source={{ uri: produto.image }} style={styles.image} resizeMode="cover" />
+          <SafeImage uri={produto.image} style={styles.image} />
           <View style={styles.imageOverlay} />
           {produto.tag ? (
             <View style={styles.tag}>
@@ -65,7 +70,7 @@ export default function ProdutoDetailScreen({ navigation, route }) {
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.category}>{produto.category.toUpperCase()}</Text>
+          <Text style={styles.category}>{(produto.category ?? 'Curso').toUpperCase()}</Text>
           <Text style={styles.title}>{produto.title}</Text>
           <Text style={styles.mentor}>por {produto.mentor}</Text>
 
@@ -93,6 +98,15 @@ export default function ProdutoDetailScreen({ navigation, route }) {
                   <ModuloItem key={index} title={modulo} />
                 ))}
               </View>
+              <View style={styles.divider} />
+            </>
+          ) : null}
+
+          {produto.video ? (
+            <>
+              <TouchableOpacity style={styles.videoButton} onPress={handleAssistirVideo}>
+                <Text style={styles.videoButtonText}>▶ ASSISTIR VÍDEO DO CURSO</Text>
+              </TouchableOpacity>
               <View style={styles.divider} />
             </>
           ) : null}
@@ -141,6 +155,8 @@ const styles = StyleSheet.create({
   sectionTitle:   { ...typography.micro, color: colors.textSecondary, marginBottom: spacing.md },
   descricao:      { ...typography.body, color: colors.textPrimary },
   modulosList:    { gap: spacing.sm },
+  videoButton:    { backgroundColor: colors.surfaceAlt, borderWidth: 1, borderColor: colors.primary, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
+  videoButtonText:{ ...typography.button, color: colors.primary },
   buySection:     { gap: spacing.md },
   priceLabel:     { ...typography.micro, color: colors.textSecondary, marginBottom: spacing.xs },
   price:          { ...typography.h4, color: colors.primary },
