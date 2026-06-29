@@ -102,7 +102,7 @@ export default function ProdutoDetailScreen({ navigation, route }) {
             </>
           ) : null}
 
-          {produto.video ? (
+          {produto.video && jaComprado ? (
             <>
               <TouchableOpacity style={styles.videoButton} onPress={handleAssistirVideo}>
                 <Text style={styles.videoButtonText}>▶ ASSISTIR VÍDEO DO CURSO</Text>

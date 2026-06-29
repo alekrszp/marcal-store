@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { Asset } from 'expo-asset';
 import { colors, spacing, typography } from '../theme';
 import { resolveMediaUrl } from '../services/mediaHelpers';
 
@@ -34,13 +35,48 @@ function VideoPlayerContent({ videoUrl, title, onGoBack }) {
 
 export default function VideoPlayerScreen({ navigation, route }) {
   const { video, title } = route.params ?? {};
-  const videoUrl = resolveMediaUrl(video);
+  const [videoUrl, setVideoUrl] = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function resolveSource() {
+      try {
+        if (typeof video === 'number') {
+          const asset = Asset.fromModule(video);
+          await asset.downloadAsync();
+          if (active) setVideoUrl(asset.localUri ?? asset.uri);
+          return;
+        }
+
+        const url = resolveMediaUrl(video);
+        if (active) setVideoUrl(url);
+      } catch {
+        if (active) setError(true);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    resolveSource();
+    return () => { active = false; };
+  }, [video]);
 
   function handleGoBack() {
     navigation.goBack();
   }
 
-  if (!videoUrl) {
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <ActivityIndicator color={colors.primary} style={styles.loader} />
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !videoUrl) {
     return (
       <SafeAreaView style={styles.safe}>
         <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
@@ -66,4 +102,5 @@ const styles = StyleSheet.create({
   videoContainer:{ flex: 1, justifyContent: 'center' },
   video:         { width: '100%', aspectRatio: 16 / 9 },
   errorText:     { ...typography.body, color: colors.textSecondary, paddingHorizontal: spacing.lg, marginTop: spacing.xl, textAlign: 'center' },
+  loader:        { marginTop: spacing.xxl },
 });

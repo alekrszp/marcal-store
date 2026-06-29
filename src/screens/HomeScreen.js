@@ -17,9 +17,11 @@ import { useUserContext } from '../context/UserContext';
 import { useCartContext } from '../context/CartContext';
 import useProdutos from '../hooks/useProdutos';
 import useCategories from '../hooks/useCategories';
+import promoService from '../services/promoService';
 
 export default function HomeScreen({ navigation }) {
   const [activeCategory, setActiveCategory] = useState('Todos');
+  const [promo, setPromo]                     = useState(PROMO_VIDEO);
   const { user }                            = useUserContext();
   const { itemCount }                       = useCartContext();
   const { produtos, reload: reloadProdutos }       = useProdutos(activeCategory);
@@ -30,6 +32,9 @@ export default function HomeScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       reloadProdutos();
+      promoService.getPromo()
+        .then(setPromo)
+        .catch(() => setPromo(PROMO_VIDEO));
     }, [reloadProdutos])
   );
 
@@ -50,7 +55,7 @@ export default function HomeScreen({ navigation }) {
   }
 
   function handleVideoPress() {
-    navigation.navigate('VideoPlayer', { video: PROMO_VIDEO.video, title: PROMO_VIDEO.title });
+    navigation.navigate('VideoPlayer', { video: promo.video, title: promo.title });
   }
 
   function handleCursosPress() {
