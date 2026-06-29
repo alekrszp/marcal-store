@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryChip from '../components/CategoryChip';
 import Button from '../components/Button';
@@ -15,6 +15,7 @@ export default function CheckoutScreen({ navigation }) {
   const { items, total, clearCart }   = useCartContext();
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [error,           setError]           = useState(null);
+  const [isSaving,        setIsSaving]        = useState(false);
 
   function handleGoBack() {
     navigation.goBack();
@@ -26,10 +27,25 @@ export default function CheckoutScreen({ navigation }) {
       return;
     }
 
+    if (!items.length) {
+      setError('Seu carrinho está vazio.');
+      return;
+    }
+
     setError(null);
-    const order = await orderService.createOrder({ items, paymentMethod: selectedPayment, total });
-    await clearCart();
-    navigation.replace('Receipt', { order });
+    setIsSaving(true);
+
+    try {
+      const order = await orderService.createOrder({ items, paymentMethod: selectedPayment, total });
+      await clearCart();
+      navigation.replace('Receipt', { order });
+    } catch (err) {
+      const message = err.message || 'Não foi possível concluir a compra.';
+      setError(message);
+      Alert.alert('Erro na compra', message);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -74,7 +90,12 @@ export default function CheckoutScreen({ navigation }) {
           <Text style={styles.totalValue}>{formatCurrency(total)}</Text>
         </View>
 
-        <Button title="CONFIRMAR COMPRA" onPress={handleConfirmar} style={styles.confirmButton} />
+        <Button
+          title="CONFIRMAR COMPRA"
+          onPress={handleConfirmar}
+          loading={isSaving}
+          style={styles.confirmButton}
+        />
 
       </ScrollView>
     </SafeAreaView>

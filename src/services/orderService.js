@@ -32,7 +32,7 @@ function _mapOrderItem(item) {
       ?? `Produto #${productId}`,
     price,
     quantity: item.quantity ?? 1,
-    image:    item.image ?? item.product?.imageURL ?? item.product?.imageUrl ?? null,
+    image:    item.image ?? item.product?.imageUrl ?? item.product?.imageURL ?? null,
   };
 }
 
@@ -105,15 +105,25 @@ async function createOrder({ items, paymentMethod, total }) {
     return localOrder;
   }
 
-  const backendItems = items.map(item => ({
-    productId: Number(item.id),
-    quantity:  item.quantity ?? 1,
-  }));
+  const backendItems = items
+    .map(item => ({
+      productId: Number(item.id ?? item.productId),
+      quantity:  item.quantity ?? 1,
+    }))
+    .filter(item => Number.isFinite(item.productId) && item.productId > 0);
+
+  if (!backendItems.length) {
+    throw new Error('Nenhum item válido no carrinho.');
+  }
 
   const created = await httpClient.request('/ws/orders', {
     method: 'POST',
     body:   { items: backendItems },
   });
+
+  if (!created) {
+    throw new Error('Resposta inválida ao criar o pedido.');
+  }
 
   const order = _mapOrder(created, paymentMethod);
 

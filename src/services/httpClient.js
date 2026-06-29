@@ -16,9 +16,17 @@
 import storage from '../storage/asyncStorageHelper';
 import { API_URL } from './config';
 
-function extractErrorMessage(body, fallback) {
+function extractErrorMessage(body, fallback, status) {
   if (!body) return fallback;
-  return body.message || body.error || fallback;
+  if (body.message) return body.message;
+  if (body.status === 503 || body.error === 'Service Unavailable') {
+    return 'Serviço temporariamente indisponível. Aguarde alguns segundos e tente novamente.';
+  }
+  if (body.error === 'Internal Server Error' || status === 500) {
+    return 'Erro no servidor. Se você ficou muito tempo logado, saia e entre novamente.';
+  }
+  if (body.error) return body.error;
+  return fallback;
 }
 
 async function request(endpoint, { method = 'GET', body, requireAuth = true, headers = {} } = {}) {
@@ -61,7 +69,7 @@ async function request(endpoint, { method = 'GET', body, requireAuth = true, hea
       errorBody = text ? { message: text } : null;
     }
 
-    throw new Error(extractErrorMessage(errorBody, `Erro ${response.status}`));
+    throw new Error(extractErrorMessage(errorBody, `Erro ${response.status}`, response.status));
   }
 
   if (response.status === 204) return null;
@@ -107,7 +115,7 @@ async function upload(endpoint, formData, { requireAuth = true } = {}) {
       errorBody = text ? { message: text } : null;
     }
 
-    throw new Error(extractErrorMessage(errorBody, `Erro ${response.status}`));
+    throw new Error(extractErrorMessage(errorBody, `Erro ${response.status}`, response.status));
   }
 
   return await response.json();
